@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "axel"
+version = "0.1.0"
+description = "Motorola 6800 assembler"
+authors = ["Jahan Addison <jahan.addison@jacata.me>"]
+license = "GPL-3.0"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+mypy = "^0.720.0"
+flake8 = "^3.7"
+pytest = "^5.1"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
