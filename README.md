@@ -3,7 +3,7 @@
 
 Multi-pass assembler
 
-* Intermediate representation pass
+* Symbol table and IR pass
 * Final pass
 
 

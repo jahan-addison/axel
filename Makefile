@@ -6,7 +6,7 @@ type:
 	poetry run python -m mypy --strict --ignore-missing-imports **/*.py
 
 lint: type
-	poetry run python -m flake8 $(project)/ext --ignore $(project)/
+	poetry run python -m flake8 --ignore $(project)/
 
 test: type
 	PYTHONPATH=./$(project) poetry run pytest $(project)/tests
