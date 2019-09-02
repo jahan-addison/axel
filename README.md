@@ -1,5 +1,5 @@
 # Axel
-> Motorola 6800 assembler 💻
+### Motorola 6800 assembler 💻
 
 Multi-pass assembler
 
