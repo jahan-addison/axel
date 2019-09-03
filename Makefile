@@ -8,8 +8,8 @@ type:
 lint: type
 	poetry run python -m flake8 --ignore $(project)/
 
-test: type
-	PYTHONPATH=./$(project) poetry run pytest $(project)/tests
+test:
+	PYTHONPATH=. poetry run pytest -s
 
 start: lint
 	poetry run python $(shell pwd)/$(project)/__main__.py

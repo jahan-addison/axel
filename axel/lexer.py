@@ -1,4 +1,4 @@
-from pampy import match, _
+import re
 from typing import Optional, TypeVar, Tuple, Union
 from enum import Enum, unique, auto
 
@@ -160,11 +160,13 @@ class Lexer:
         pass
 
     def _skip_whitespace_and_comments(self) -> None:
-        if self.pointer == ' ':
+        if re.match('[\r\n\t ]', self.pointer):
             self._inc()
             self._skip_whitespace_and_comments()
         if self.pointer == ';':
             self._skip_to_next_line()
+            self._skip_whitespace_and_comments()
+
 
     def _skip_to_next_line(self) -> None:
         skip = True

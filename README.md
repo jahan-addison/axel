@@ -7,6 +7,15 @@ Multi-pass assembler
 * Final pass
 
 
+# Development
+
+Run `make start`
+
+### Tests
+
+Run `make test`
+
 # Details
 
 Program, data and stack memories occupy the same memory space. The total addressable memory size is 64 KB.
+
