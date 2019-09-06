@@ -136,13 +136,17 @@ class Lexer:
 
     def __init__(self, source: str) -> None:
         self._pointer: int = 0
+        self._last: Token = Token.T_UNKNOWN
         self._source: str = source
         self._data: Optional[
             Tuple[str, int, Union[str, int]]]
 
     @property
     def pointer(self) -> str:
-        return self._source[self._pointer]
+        try:
+            return self._source[self._pointer]
+        except IndexError:
+            return ''
 
     def __iter__(self: M) -> M:
         return self
@@ -156,8 +160,24 @@ class Lexer:
     def _reset(self) -> None:
         pass
 
-    def _peek_next(self) -> None:
-        pass
+    def _read_term(self) -> str:
+        term: str = ''
+        self._skip_whitespace_and_comments()
+        while self.pointer and self.pointer != ' ':
+            term += self.pointer
+            self._inc()
+        return term
+
+    def _peek_next(self) -> str:
+        term: str = ''
+        self._skip_whitespace_and_comments()
+        index: int = self._pointer
+        size: int = len(self._source)
+        while index < size and self._source[index] != ' ':
+            term += self._source[index]
+            index += 1
+
+        return term
 
     def _skip_whitespace_and_comments(self) -> None:
         if re.match('[\r\n\t ]', self.pointer):
@@ -167,11 +187,11 @@ class Lexer:
             self._skip_to_next_line()
             self._skip_whitespace_and_comments()
 
-
     def _skip_to_next_line(self) -> None:
         skip = True
         is_newline = False
         while skip:
+            self._inc()
             if self.pointer == '\n' \
                     or self.pointer == '\r':
                 is_newline = True
@@ -179,7 +199,6 @@ class Lexer:
                 if self.pointer != '\n' \
                         and self.pointer != '\r':
                     skip = False
-            self._inc()
 
     def _variable_token(self) -> None:
         pass

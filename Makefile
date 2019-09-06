@@ -3,10 +3,10 @@
 project = axel
 
 type:
-	poetry run python -m mypy --strict --ignore-missing-imports **/*.py
+	poetry run python -m mypy --strict --ignore-missing-imports $(project)/*.py
 
 lint: type
-	poetry run python -m flake8 --ignore $(project)/
+	poetry run python -m flake8 --ignore $(project)/*.py
 
 test:
 	PYTHONPATH=. poetry run pytest -s
