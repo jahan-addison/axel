@@ -55,5 +55,4 @@ def test_peek_next(lexer):
     test = lexer('ABA  #$10')
     test._pointer = 3
     peek = test._peek_next()
-
     assert peek == '#$10'

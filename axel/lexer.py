@@ -10,8 +10,8 @@ class TokenEnum(Enum):
             name: T,
             start: int,
             count: int,
-            last_values: int) -> Tuple[T, int]:
-        return (name, start + 1)
+            last_values: int) -> T:
+        return name
 
 
 @unique
@@ -19,13 +19,13 @@ class Token(TokenEnum):
     T_LVALUE = auto()
     T_LABEL = auto()
     T_EQUAL = auto()
-    T_RVALUE = auto()
+    T_COMMA = auto()
     T_MNEMONIC = auto()
     T_REGISTER = auto()
     T_UNKNOWN = auto()
     T_IMM_UINT8 = auto()
     T_IMM_UINT16 = auto()
-    T_DIR_ADDR_UINT16 = auto()
+    T_DIR_ADDR_UINT8 = auto()
     T_EXT_ADDR_UINT16 = auto()
     T_DISP_ADDR_INT8 = auto()
     T_EOL = auto()
@@ -45,88 +45,88 @@ class AddressingMode(TokenEnum):
 
 @unique
 class Register(TokenEnum):
-    A = auto()
-    B = auto()
-    X = auto()
-    PC = auto()
-    SP = auto()
-    SR = auto()
+    T_A = auto()
+    T_B = auto()
+    T_X = auto()
+    T_PC = auto()
+    T_SP = auto()
+    T_SR = auto()
 
 
 @unique
 class Mnemonic(TokenEnum):
-    ABA = auto()
-    ADC = auto()
-    ADD = auto()
-    AND = auto()
-    ASL = auto()
-    ASR = auto()
-    BCC = auto()
-    BCS = auto()
-    BEQ = auto()
-    BGE = auto()
-    BGT = auto()
-    BHI = auto()
-    BIT = auto()
-    BLE = auto()
-    BLS = auto()
-    BLT = auto()
-    BMI = auto()
-    BNE = auto()
-    BPL = auto()
-    BRA = auto()
-    BSR = auto()
-    BVC = auto()
-    BVS = auto()
-    CBA = auto()
-    CLC = auto()
-    CLI = auto()
-    CLR = auto()
-    CLV = auto()
-    CMP = auto()
-    COM = auto()
-    CPX = auto()
-    DAA = auto()
-    DEC = auto()
-    DES = auto()
-    DEX = auto()
-    EOR = auto()
-    INC = auto()
-    INS = auto()
-    INX = auto()
-    JMP = auto()
-    JSR = auto()
-    LDA = auto()
-    LDS = auto()
-    LDX = auto()
-    LSR = auto()
-    NEG = auto()
-    NOP = auto()
-    ORA = auto()
-    PSH = auto()
-    PUL = auto()
-    ROL = auto()
-    ROR = auto()
-    RTI = auto()
-    RTS = auto()
-    SBA = auto()
-    SBC = auto()
-    SEC = auto()
-    SEI = auto()
-    SEV = auto()
-    STA = auto()
-    STS = auto()
-    STX = auto()
-    SUB = auto()
-    SWI = auto()
-    TAB = auto()
-    TAP = auto()
-    TBA = auto()
-    TPA = auto()
-    TST = auto()
-    TSX = auto()
-    TXS = auto()
-    WAI = auto()
+    T_ABA = auto()
+    T_ADC = auto()
+    T_ADD = auto()
+    T_AND = auto()
+    T_ASL = auto()
+    T_ASR = auto()
+    T_BCC = auto()
+    T_BCS = auto()
+    T_BEQ = auto()
+    T_BGE = auto()
+    T_BGT = auto()
+    T_BHI = auto()
+    T_BIT = auto()
+    T_BLE = auto()
+    T_BLS = auto()
+    T_BLT = auto()
+    T_BMI = auto()
+    T_BNE = auto()
+    T_BPL = auto()
+    T_BRA = auto()
+    T_BSR = auto()
+    T_BVC = auto()
+    T_BVS = auto()
+    T_CBA = auto()
+    T_CLC = auto()
+    T_CLI = auto()
+    T_CLR = auto()
+    T_CLV = auto()
+    T_CMP = auto()
+    T_COM = auto()
+    T_CPX = auto()
+    T_DAA = auto()
+    T_DEC = auto()
+    T_DES = auto()
+    T_DEX = auto()
+    T_EOR = auto()
+    T_INC = auto()
+    T_INS = auto()
+    T_INX = auto()
+    T_JMP = auto()
+    T_JSR = auto()
+    T_LDA = auto()
+    T_LDS = auto()
+    T_LDX = auto()
+    T_LSR = auto()
+    T_NEG = auto()
+    T_NOP = auto()
+    T_ORA = auto()
+    T_PSH = auto()
+    T_PUL = auto()
+    T_ROL = auto()
+    T_ROR = auto()
+    T_RTI = auto()
+    T_RTS = auto()
+    T_SBA = auto()
+    T_SBC = auto()
+    T_SEC = auto()
+    T_SEI = auto()
+    T_SEV = auto()
+    T_STA = auto()
+    T_STS = auto()
+    T_STX = auto()
+    T_SUB = auto()
+    T_SWI = auto()
+    T_TAB = auto()
+    T_TAP = auto()
+    T_TBA = auto()
+    T_TPA = auto()
+    T_TST = auto()
+    T_TSX = auto()
+    T_TXS = auto()
+    T_WAI = auto()
 
 
 M = TypeVar('M', bound='Lexer')
@@ -136,6 +136,10 @@ class Lexer:
 
     def __init__(self, source: str) -> None:
         self._pointer: int = 0
+        self.yylex = {
+            'token': Token.T_UNKNOWN,
+            'data': None
+        }
         self._last: Token = Token.T_UNKNOWN
         self._source: str = source
         self._data: Optional[
@@ -151,7 +155,31 @@ class Lexer:
     def __iter__(self: M) -> M:
         return self
 
-    def __next__(self) -> Token:
+    def __next__(self) -> TokenEnum:
+        term = self._read_term()
+        if not term:
+            raise StopIteration('No more tokens!')
+
+        if f'T_{term}' in Mnemonic.__members__:
+            return Mnemonic[f'T_{term}']
+
+        if f'T_{term}' in Register.__members__:
+            return Register[f'T_{term}']
+
+        if self._peek_next() == '=':
+            return Token.T_LVALUE
+
+        if term[:1] == '$':
+            if len(bytes.fromhex(term[1:])) == 1:
+                return Token.T_DIR_ADDR_UINT8
+            elif len(bytes.fromhex(term[1:])) == 2:
+                return Token.T_EXT_ADDR_UINT16
+
+        if term == '=':
+            return Token.T_EQUAL
+
+        # if f'T_{self._peek_next()}' not in Mnemonic.__members__
+        #     and
         return Token.T_UNKNOWN
 
     def _inc(self) -> None:
@@ -163,7 +191,7 @@ class Lexer:
     def _read_term(self) -> str:
         term: str = ''
         self._skip_whitespace_and_comments()
-        while self.pointer and self.pointer != ' ':
+        while self.pointer and not re.match('[\r\n\t ]', self.pointer):
             term += self.pointer
             self._inc()
         return term
@@ -173,7 +201,7 @@ class Lexer:
         self._skip_whitespace_and_comments()
         index: int = self._pointer
         size: int = len(self._source)
-        while index < size and self._source[index] != ' ':
+        while index < size and not re.match('[\r\n\t ]', self._source[index]):
             term += self._source[index]
             index += 1
 
@@ -191,11 +219,14 @@ class Lexer:
         skip = True
         is_newline = False
         while skip:
+            if not self.pointer:
+                skip = False
+                break
             self._inc()
             if self.pointer == '\n' \
                     or self.pointer == '\r':
                 is_newline = True
-            elif is_newline:
+            if is_newline:
                 if self.pointer != '\n' \
                         and self.pointer != '\r':
                     skip = False
