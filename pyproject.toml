@@ -4,10 +4,19 @@ version = "0.1.0"
 description = "Motorola 6800 assembler"
 authors = ["Jahan Addison <info@jahanaddison.com>"]
 license = "GPL-3.0"
+repository = "https://github.com/jahan-addison/Axel"
+keywords = ["assembler", "assembly", "6800", "motorola", "python3"]
+classifiers = [
+    "Development Status :: 0 - Alpha",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
 
 [tool.poetry.dependencies]
 python = "^3.7"
 pampy = "^0.2.1"
+mypy_extensions = "^0.4.1"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.720.0"

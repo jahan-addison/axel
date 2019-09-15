@@ -1,6 +1,7 @@
 from typing import List
-from axel.lexer import Lexer
 import pytest
+from axel.lexer import Lexer
+
 
 @pytest.fixture
 def lexer() -> Lexer:

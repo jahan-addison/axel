@@ -1,133 +1,7 @@
 import re
-from typing import Optional, TypeVar, Tuple, Union
-from enum import Enum, unique, auto
-
-T = TypeVar('T', bound='TokenEnum')
-
-
-class TokenEnum(Enum):
-    def _generate_next_value_(  # type: ignore
-            name: T,
-            start: int,
-            count: int,
-            last_values: int) -> T:
-        return name
-
-
-@unique
-class Token(TokenEnum):
-    T_LVALUE = auto()
-    T_LABEL = auto()
-    T_EQUAL = auto()
-    T_COMMA = auto()
-    T_MNEMONIC = auto()
-    T_REGISTER = auto()
-    T_UNKNOWN = auto()
-    T_IMM_UINT8 = auto()
-    T_IMM_UINT16 = auto()
-    T_DIR_ADDR_UINT8 = auto()
-    T_EXT_ADDR_UINT16 = auto()
-    T_DISP_ADDR_INT8 = auto()
-    T_EOL = auto()
-    T_EOF = auto()
-
-
-@unique
-class AddressingMode(TokenEnum):
-    ACC = auto()
-    IMM = auto()
-    DIR = auto()
-    EXT = auto()
-    IDX = auto()
-    INH = auto()
-    REL = auto()
-
-
-@unique
-class Register(TokenEnum):
-    T_A = auto()
-    T_B = auto()
-    T_X = auto()
-    T_PC = auto()
-    T_SP = auto()
-    T_SR = auto()
-
-
-@unique
-class Mnemonic(TokenEnum):
-    T_ABA = auto()
-    T_ADC = auto()
-    T_ADD = auto()
-    T_AND = auto()
-    T_ASL = auto()
-    T_ASR = auto()
-    T_BCC = auto()
-    T_BCS = auto()
-    T_BEQ = auto()
-    T_BGE = auto()
-    T_BGT = auto()
-    T_BHI = auto()
-    T_BIT = auto()
-    T_BLE = auto()
-    T_BLS = auto()
-    T_BLT = auto()
-    T_BMI = auto()
-    T_BNE = auto()
-    T_BPL = auto()
-    T_BRA = auto()
-    T_BSR = auto()
-    T_BVC = auto()
-    T_BVS = auto()
-    T_CBA = auto()
-    T_CLC = auto()
-    T_CLI = auto()
-    T_CLR = auto()
-    T_CLV = auto()
-    T_CMP = auto()
-    T_COM = auto()
-    T_CPX = auto()
-    T_DAA = auto()
-    T_DEC = auto()
-    T_DES = auto()
-    T_DEX = auto()
-    T_EOR = auto()
-    T_INC = auto()
-    T_INS = auto()
-    T_INX = auto()
-    T_JMP = auto()
-    T_JSR = auto()
-    T_LDA = auto()
-    T_LDS = auto()
-    T_LDX = auto()
-    T_LSR = auto()
-    T_NEG = auto()
-    T_NOP = auto()
-    T_ORA = auto()
-    T_PSH = auto()
-    T_PUL = auto()
-    T_ROL = auto()
-    T_ROR = auto()
-    T_RTI = auto()
-    T_RTS = auto()
-    T_SBA = auto()
-    T_SBC = auto()
-    T_SEC = auto()
-    T_SEI = auto()
-    T_SEV = auto()
-    T_STA = auto()
-    T_STS = auto()
-    T_STX = auto()
-    T_SUB = auto()
-    T_SWI = auto()
-    T_TAB = auto()
-    T_TAP = auto()
-    T_TBA = auto()
-    T_TPA = auto()
-    T_TST = auto()
-    T_TSX = auto()
-    T_TXS = auto()
-    T_WAI = auto()
-
+from axel.tokens import TokenEnum, Token, Register, Mnemonic
+from typing import Optional, TypeVar
+from mypy_extensions import TypedDict
 
 M = TypeVar('M', bound='Lexer')
 
@@ -135,15 +9,17 @@ M = TypeVar('M', bound='Lexer')
 class Lexer:
 
     def __init__(self, source: str) -> None:
+        Scanner = TypedDict('Scanner', {
+            'token': TokenEnum,
+            'data': Optional[str]
+        })
+        self._source: str = source
         self._pointer: int = 0
-        self.yylex = {
+        self.yylex: Scanner = {
             'token': Token.T_UNKNOWN,
             'data': None
         }
-        self._last: Token = Token.T_UNKNOWN
-        self._source: str = source
-        self._data: Optional[
-            Tuple[str, int, Union[str, int]]]
+        self._last: TokenEnum = Token.T_UNKNOWN
 
     @property
     def pointer(self) -> str:
@@ -157,41 +33,44 @@ class Lexer:
 
     def __next__(self) -> TokenEnum:
         term = self._read_term()
+        token: Optional[TokenEnum] = None
         if not term:
-            raise StopIteration('No more tokens!')
+            raise StopIteration('Lexer Iterator out of bounds')
 
-        if f'T_{term}' in Mnemonic.__members__:
-            return Mnemonic[f'T_{term}']
+        self._reset()
 
-        if f'T_{term}' in Register.__members__:
-            return Register[f'T_{term}']
+        token = token or self._mnemonic_token(term)
 
-        if self._peek_next() == '=':
-            return Token.T_LVALUE
+        token = token or self._comma_token(term)
 
-        if term[:1] == '$':
-            if len(bytes.fromhex(term[1:])) == 1:
-                return Token.T_DIR_ADDR_UINT8
-            elif len(bytes.fromhex(term[1:])) == 2:
-                return Token.T_EXT_ADDR_UINT16
+        token = token or self._register_token(term)
 
-        if term == '=':
-            return Token.T_EQUAL
+        token = token or self._equal_token(term)
 
-        # if f'T_{self._peek_next()}' not in Mnemonic.__members__
-        #     and
-        return Token.T_UNKNOWN
+        token = token or self._immediate_token(term)
+
+        token = token or self._direct_or_extended_token(term)
+
+        token = token or self._equal_token(term)
+
+        token = token or self._label_token(term)
+
+        token = token or self._displacement_token(term)
+
+        token = token or self._lvalue_token(term)
+
+        return token or Token.T_UNKNOWN
 
     def _inc(self) -> None:
         self._pointer += 1
 
-    def _reset(self) -> None:
-        pass
+    def _dec(self) -> None:
+        self._pointer -= 1
 
     def _read_term(self) -> str:
         term: str = ''
         self._skip_whitespace_and_comments()
-        while self.pointer and not re.match('[\r\n\t ]', self.pointer):
+        while self.pointer and not re.match('[,\r\n\t ]', self.pointer):
             term += self.pointer
             self._inc()
         return term
@@ -201,11 +80,24 @@ class Lexer:
         self._skip_whitespace_and_comments()
         index: int = self._pointer
         size: int = len(self._source)
-        while index < size and not re.match('[\r\n\t ]', self._source[index]):
+        while index < size and not re.match('[,\r\n\t ]', self._source[index]):
             term += self._source[index]
             index += 1
 
         return term
+
+    def _reset(self) -> None:
+        self.yylex = {
+            'token': Token.T_UNKNOWN,
+            'data': None
+        }
+
+    def _set_token(self, token: TokenEnum, term: str) -> None:
+        self._last = token
+        self.yylex = {
+            'token': token,
+            'data': term
+        }
 
     def _skip_whitespace_and_comments(self) -> None:
         if re.match('[\r\n\t ]', self.pointer):
@@ -231,41 +123,83 @@ class Lexer:
                         and self.pointer != '\r':
                     skip = False
 
-    def _variable_token(self) -> None:
-        pass
+    def _lvalue_token(self, term: str) -> Optional[TokenEnum]:
+        if self._peek_next() == '=':
+            self._set_token(Token.T_LVALUE, term)
+            return Token.T_LVALUE
+        return None
 
-    def _label_token(self) -> None:
-        pass
+    def _comma_token(self, term: str) -> Optional[TokenEnum]:
+        if self._source[self._pointer] == ',':
+            self._inc()
+            self._set_token(Token.T_COMMA, term)
+            return Token.T_COMMA
+        return None
 
-    def _equal_token(self) -> None:
-        pass
+    def _label_token(self, term: str) -> Optional[TokenEnum]:
+        if self._source[self._pointer - (len(term) + 1)] == "\n":
+            if f'T_{self._peek_next()}' in Mnemonic.__members__ or \
+                    term[-1:] == ':':
+                self._set_token(Token.T_LABEL, term)
+                return Token.T_LABEL
+        return None
 
-    def _rvalue_token(self) -> None:
-        pass
+    def _equal_token(self, term: str) -> Optional[TokenEnum]:
+        if term == '=':
+            self._set_token(Token.T_EQUAL, term)
+            return Token.T_EQUAL
+        return None
 
-    def _uint8_immediate_token(self) -> None:
-        pass
+    def _immediate_token(self, term: str) -> Optional[TokenEnum]:
+        if term[:1] == '#' and term[1:2] == '$':
+            if len(bytes.fromhex(term[2:])) == 1:
+                self._set_token(Token.T_IMM_UINT8, term)
+                return Token.T_IMM_UINT8
+            elif len(bytes.fromhex(term[2:])) == 2:
+                self._set_token(Token.T_IMM_UINT16, term)
+                return Token.T_IMM_UINT16
+        return None
 
-    def _uint16_immediate_token(self) -> None:
-        pass
+    def _direct_or_extended_token(self, term: str) -> Optional[TokenEnum]:
+        if term[:1] == '$':
+            if len(bytes.fromhex(term[1:])) == 1:
+                self._set_token(Token.T_DIR_ADDR_UINT8, term)
+                return Token.T_DIR_ADDR_UINT8
+            elif len(bytes.fromhex(term[1:])) == 2:
+                self._set_token(Token.T_EXT_ADDR_UINT16, term)
+                return Token.T_EXT_ADDR_UINT16
+        return None
 
-    def _uint8_direct_token(self) -> None:
-        pass
+    def _displacement_token(self, term: str) -> Optional[TokenEnum]:
+        if self._last in Mnemonic or self._last in Register:
+            if f'T_{term[3:]}' not in Register.__members__ and \
+                    self._peek_next() != '=' or \
+                    term[-1:] == ':':
+                self._set_token(Token.T_DISP_ADDR_INT8, term)
+                return Token.T_DISP_ADDR_INT8
+        return None
 
-    def _uint16_extended_token(self) -> None:
-        pass
+    def _mnemonic_token(self, term: str) -> Optional[TokenEnum]:
+        if len(term) == 3 and \
+                f'T_{term[:3]}' in Mnemonic.__members__:
+            self._set_token(Mnemonic[f'T_{term[:3]}'], term[:3])
+            return Mnemonic[f'T_{term[:3]}']
 
-    def _int8_displacement_token(self) -> None:
-        pass
+        if len(term) == 4 and \
+                f'T_{term[:3]}' in Mnemonic.__members__ and \
+                f'T_{term[3:]}' in Register.__members__:
+            self._dec()
+            self._set_token(Mnemonic[f'T_{term[:3]}'], term[:3])
+            return Mnemonic[f'T_{term[:3]}']
+        return None
 
-    def _mnemonic_token(self) -> None:
-        pass
+    def _register_token(self, term: str) -> Optional[TokenEnum]:
+        if self._source[self._pointer + 1] == 'X':
+            self._inc()
+            self._set_token(Register.T_X, 'X')
+            return Register.T_X
 
-    def _register_token(self) -> None:
-        pass
-
-    def _eol_token(self) -> None:
-        pass
-
-    def _eof_token(self) -> None:
-        pass
+        if f'T_{term}' in Register.__members__:
+            self._set_token(Register[f'T_{term}'], term)
+            return Register[f'T_{term}']
+        return None

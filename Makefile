@@ -12,5 +12,5 @@ test:
 	PYTHONPATH=. poetry run pytest -s
 
 start: lint
-	poetry run python $(shell pwd)/$(project)/__main__.py
+	PYTHONPATH=. poetry run python $(shell pwd)/$(project)/__main__.py
 
