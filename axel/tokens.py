@@ -27,8 +27,6 @@ class Token(TokenEnum):
     T_DIR_ADDR_UINT8 = auto()
     T_EXT_ADDR_UINT16 = auto()
     T_DISP_ADDR_INT8 = auto()
-    T_EOL = auto()
-    T_EOF = auto()
 
 
 @unique

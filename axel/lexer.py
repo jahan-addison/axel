@@ -7,7 +7,12 @@ M = TypeVar('M', bound='Lexer')
 
 
 class Lexer:
+    """Lexer Iterator for the 6800 assembly language.
 
+    LL(1) tokenization of a source string into a stream, sets
+    last token and scanner data during each __next__ call.
+
+    """
     def __init__(self, source: str) -> None:
         Scanner = TypedDict('Scanner', {
             'token': TokenEnum,
@@ -23,15 +28,18 @@ class Lexer:
 
     @property
     def pointer(self) -> str:
+        """Pointer of current location in scanner. """
         try:
             return self._source[self._pointer]
         except IndexError:
             return ''
 
     def __iter__(self: M) -> M:
+        """Iterator """
         return self
 
     def __next__(self) -> TokenEnum:
+        """Scan and retrieve next token on each iteration. """
         term = self._read_term()
         token: Optional[TokenEnum] = None
         if not term:
@@ -62,12 +70,19 @@ class Lexer:
         return token or Token.T_UNKNOWN
 
     def _inc(self) -> None:
+        """Increment the pointer, similar to pointer arithmetic."""
         self._pointer += 1
 
     def _dec(self) -> None:
+        """Decrement the pointer, similar to pointer arithmetic."""
         self._pointer -= 1
 
     def _read_term(self) -> str:
+        """Read next term.
+
+        Read the next term from the source string, skipping all
+        whitespace and comments.
+        """
         term: str = ''
         self._skip_whitespace_and_comments()
         while self.pointer and not re.match('[,\r\n\t ]', self.pointer):
@@ -76,6 +91,10 @@ class Lexer:
         return term
 
     def _peek_next(self) -> str:
+        """Peek one term.
+
+        Peek ahead one term to infer lexical analysis.
+        """
         term: str = ''
         self._skip_whitespace_and_comments()
         index: int = self._pointer
@@ -87,12 +106,14 @@ class Lexer:
         return term
 
     def _reset(self) -> None:
+        """Reset scanner data. """
         self.yylex = {
             'token': Token.T_UNKNOWN,
             'data': None
         }
 
     def _set_token(self, token: TokenEnum, term: str) -> None:
+        """Set last token and scanner data. """
         self._last = token
         self.yylex = {
             'token': token,
@@ -100,6 +121,11 @@ class Lexer:
         }
 
     def _skip_whitespace_and_comments(self) -> None:
+        """Skip whitespace.
+
+        Skips all whitespace and comments recursively until the beginning
+        of the next term.
+        """
         if re.match('[\r\n\t ]', self.pointer):
             self._inc()
             self._skip_whitespace_and_comments()
@@ -108,6 +134,7 @@ class Lexer:
             self._skip_whitespace_and_comments()
 
     def _skip_to_next_line(self) -> None:
+        """ Skips until sequences of EOL. """
         skip = True
         is_newline = False
         while skip:
@@ -124,20 +151,32 @@ class Lexer:
                     skip = False
 
     def _lvalue_token(self, term: str) -> Optional[TokenEnum]:
+        """Tokenize lvalues. (i.e. *addressable* operands) """
         if self._peek_next() == '=':
             self._set_token(Token.T_LVALUE, term)
             return Token.T_LVALUE
         return None
 
     def _comma_token(self, term: str) -> Optional[TokenEnum]:
-        if self._source[self._pointer] == ',':
+        """Commas.
+
+        Tokenize operands between general registers and the index register (X).
+        """
+        if self.pointer == ',':
             self._inc()
             self._set_token(Token.T_COMMA, term)
             return Token.T_COMMA
         return None
 
     def _label_token(self, term: str) -> Optional[TokenEnum]:
-        if self._source[self._pointer - (len(term) + 1)] == "\n":
+        """Labels.
+
+        Tokenize labels at the beginning of lines, and
+        optionally suffixed with ":".
+        """
+        peek_back = self._pointer - (len(term) + 1)
+        previous_line = self._source[peek_back]
+        if previous_line == "\n" or peek_back <= 0:
             if f'T_{self._peek_next()}' in Mnemonic.__members__ or \
                     term[-1:] == ':':
                 self._set_token(Token.T_LABEL, term)
@@ -145,12 +184,17 @@ class Lexer:
         return None
 
     def _equal_token(self, term: str) -> Optional[TokenEnum]:
+        """Equal assignment.
+
+        Tokenize equal assignments between lvalues and
+        addressable operands."""
         if term == '=':
             self._set_token(Token.T_EQUAL, term)
             return Token.T_EQUAL
         return None
 
     def _immediate_token(self, term: str) -> Optional[TokenEnum]:
+        """Tokenize immediate 1 byte or 2 byte data. """
         if term[:1] == '#' and term[1:2] == '$':
             if len(bytes.fromhex(term[2:])) == 1:
                 self._set_token(Token.T_IMM_UINT8, term)
@@ -161,6 +205,7 @@ class Lexer:
         return None
 
     def _direct_or_extended_token(self, term: str) -> Optional[TokenEnum]:
+        """Tokenize direct or extended 1 byte or 2 byte addressable memory. """
         if term[:1] == '$':
             if len(bytes.fromhex(term[1:])) == 1:
                 self._set_token(Token.T_DIR_ADDR_UINT8, term)
@@ -171,15 +216,24 @@ class Lexer:
         return None
 
     def _displacement_token(self, term: str) -> Optional[TokenEnum]:
+        """Tokenize displacement (i.e. branching) 1 byte memory addresses. """
         if self._last in Mnemonic or self._last in Register:
             if f'T_{term[3:]}' not in Register.__members__ and \
-                    self._peek_next() != '=' or \
-                    term[-1:] == ':':
+                    self._peek_next() != '=':
                 self._set_token(Token.T_DISP_ADDR_INT8, term)
                 return Token.T_DISP_ADDR_INT8
         return None
 
     def _mnemonic_token(self, term: str) -> Optional[TokenEnum]:
+        """ Mnemonics.
+
+        Tokenize Mnemonics in the 6800 ISA. Note that some mnemonics
+        like the `LDA' may contiguously use its register operand `LDAA'.
+        Examples:
+            LDAA #$01
+            TAB
+            TST B
+        """
         if len(term) == 3 and \
                 f'T_{term[:3]}' in Mnemonic.__members__:
             self._set_token(Mnemonic[f'T_{term[:3]}'], term[:3])
@@ -194,10 +248,18 @@ class Lexer:
         return None
 
     def _register_token(self, term: str) -> Optional[TokenEnum]:
-        if self._source[self._pointer + 1] == 'X':
-            self._inc()
-            self._set_token(Register.T_X, 'X')
-            return Register.T_X
+        """ Registers.
+
+        Tokenize register operands, including the special-case index
+        register `X'.
+        """
+        try:
+            if self._source[self._pointer + 1] == 'X':
+                self._inc()
+                self._set_token(Register.T_X, 'X')
+                return Register.T_X
+        except IndexError:
+            return None
 
         if f'T_{term}' in Register.__members__:
             self._set_token(Register[f'T_{term}'], term)

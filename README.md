@@ -1,21 +1,28 @@
 # Axel
-### Motorola 6800 assembler 💻
+## Motorola 6800 assembler 💻
 
-Multi-pass assembler
+### Details
 
-* Symbol table and IR pass
-* Final pass
+#### Program:
 
+* LL(1) of the 6800 assembly language
+* Multipass assembler:
+    * Symbol table and IR pass
+    * Final pass
+* Fully tested with robust test suite and coverage
+
+#### Device:
+
+  * Program, data and stack memories occupy the same memory space. The total addressable memory size is 64 KB
 
 # Development
 
-Run `make start`
+During development, run `make start` to start program.
 
 ### Tests
 
 Run `make test`
 
-# Details
+## License
 
-Program, data and stack memories occupy the same memory space. The total addressable memory size is 64 KB.
-
+GPL-v3.0

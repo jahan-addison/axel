@@ -1,4 +1,4 @@
-from lexer import Lexer
+from axel.lexer import Lexer
 
 with open('./etc/example-1.asm') as f:
     test = Lexer(f.read())

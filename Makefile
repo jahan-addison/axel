@@ -9,8 +9,8 @@ lint: type
 	poetry run python -m flake8 --ignore $(project)/*.py
 
 test:
-	PYTHONPATH=. poetry run pytest -s
+	poetry run pytest -s
 
 start: lint
-	PYTHONPATH=. poetry run python $(shell pwd)/$(project)/__main__.py
+	poetry run python $(shell pwd)/$(project)/__main__.py
 
