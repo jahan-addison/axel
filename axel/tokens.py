@@ -5,6 +5,11 @@ T = TypeVar('T', bound='TokenEnum')
 
 
 class TokenEnum(Enum):
+    """Token Enumerations.
+
+    Encapsulates useful details in each enum for quick access,
+    while guaranteeing uniqueness on each `auto'.
+    """
     def _generate_next_value_(  # type: ignore
             self: T,
             start: int,
@@ -15,6 +20,10 @@ class TokenEnum(Enum):
 
 @unique
 class Token(TokenEnum):
+    """Lexeme tokens.
+
+    General language lexemes and data types.
+    """
     T_LVALUE = auto()
     T_LABEL = auto()
     T_EQUAL = auto()
@@ -31,17 +40,26 @@ class Token(TokenEnum):
 
 @unique
 class AddressingMode(TokenEnum):
+    """Address modes. """
+    # Acumulator addressing
     ACC = auto()
+    # Immediate addressing
     IMM = auto()
+    # Direct addressing
     DIR = auto()
+    # Extended addressing
     EXT = auto()
+    # Indexed addressing
     IDX = auto()
+    # Implied (inherent) addressing
     INH = auto()
+    # Relative addressing
     REL = auto()
 
 
 @unique
 class Register(TokenEnum):
+    """Registers. """
     T_A = auto()
     T_B = auto()
     T_X = auto()
@@ -52,6 +70,7 @@ class Register(TokenEnum):
 
 @unique
 class Mnemonic(TokenEnum):
+    """ Mnemonics."""
     T_ABA = auto()
     T_ADC = auto()
     T_ADD = auto()
