@@ -242,7 +242,8 @@ class Lexer:
         """ Mnemonics.
 
         Tokenize Mnemonics in the 6800 ISA. Note that some mnemonics
-        like the `LDA' may contiguously use its register operand `LDAA'.
+        like the `LDA' may contiguously use its register operand `LDAA'
+        in immediate addressing mode.
         Examples:
             LDAA #$01
             TAB

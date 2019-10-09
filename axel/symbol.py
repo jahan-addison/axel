@@ -12,3 +12,59 @@
     You should have received a copy of the GNU General Public License
     along with Axel.  If not, see <https://www.gnu.org/licenses/>.
 """
+from typing import Union, Dict, Tuple
+
+
+class U_Int8:
+    def __init__(self, num: int) -> None:
+        self.num = num & 255
+
+    def __add__(self, of: int) -> int:
+        return (self.num + of) & 255
+
+    def __iadd__(self, of: int) -> int:
+        self.num = (self.num + of) & 255
+        return self.num
+
+    def __sub__(self, of: int) -> int:
+        return (self.num - of) & 255
+
+    def __isub__(self, of: int) -> int:
+        self.num = (self.num - of) & 255
+        return self.num
+
+
+class U_Int16:
+    def __init__(self, num: int) -> None:
+        self.num = num & 65535
+
+    def __add__(self, of: int) -> int:
+        return (self.num + of) & 65535
+
+    def __iadd__(self, of: int) -> int:
+        self.num = (self.num + of) & 65535
+        return self.num
+
+    def __sub__(self, of: int) -> int:
+        return (self.num - of) & 65535
+
+    def __isub__(self, of: int) -> int:
+        self.num = (self.num - of) & 65535
+        return self.num
+
+
+TableField = Tuple[U_Int16, str, Union[U_Int16, str]]
+
+
+class Symbol_Table:
+    def __init__(self) -> None:
+        self.table: Dict[str, TableField] = {}
+
+    def set(self, label:
+            str, addr: U_Int16,
+            type: str,
+            value: Union[U_Int16, str]) -> None:
+        self.table[label] = (addr, type, value)
+
+    def get(self, label: str) -> TableField:
+        return self.table[label]

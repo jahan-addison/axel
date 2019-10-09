@@ -13,7 +13,8 @@
 
 #### Device:
 
-  * Program, data and stack memories occupy the same memory space. The total addressable memory size is 64 KB
+  * Program, data and stack memories occupy the same memory space. The total big-endian addressable memory size is 64 KB
+  *
 
 # Development
 
