@@ -1,0 +1,187 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ACC	../axel/tokens.py	/^    ACC = auto()$/;"	kind:variable	line:59
+AddressingMode	../axel/tokens.py	/^class AddressingMode(TokenEnum):$/;"	kind:class	line:56
+DIR	../axel/tokens.py	/^    DIR = auto()$/;"	kind:variable	line:63
+EXT	../axel/tokens.py	/^    EXT = auto()$/;"	kind:variable	line:65
+IDX	../axel/tokens.py	/^    IDX = auto()$/;"	kind:variable	line:67
+IMM	../axel/tokens.py	/^    IMM = auto()$/;"	kind:variable	line:61
+INH	../axel/tokens.py	/^    INH = auto()$/;"	kind:variable	line:69
+Lexer	../axel/lexer.py	/^class Lexer:$/;"	kind:class	line:23
+M	../axel/lexer.py	/^M = TypeVar('M', bound='Lexer')$/;"	kind:variable	line:20
+Mnemonic	../axel/tokens.py	/^class Mnemonic(TokenEnum):$/;"	kind:class	line:86
+REL	../axel/tokens.py	/^    REL = auto()$/;"	kind:variable	line:71
+Register	../axel/tokens.py	/^class Register(TokenEnum):$/;"	kind:class	line:75
+Symbol_Table	../axel/symbol.py	/^class Symbol_Table:$/;"	kind:class	line:59
+T	../axel/tokens.py	/^T = TypeVar('T', bound='TokenEnum')$/;"	kind:variable	line:18
+T_A	../axel/tokens.py	/^    T_A = auto()$/;"	kind:variable	line:77
+T_ABA	../axel/tokens.py	/^    T_ABA = auto()$/;"	kind:variable	line:88
+T_ADC	../axel/tokens.py	/^    T_ADC = auto()$/;"	kind:variable	line:89
+T_ADD	../axel/tokens.py	/^    T_ADD = auto()$/;"	kind:variable	line:90
+T_AND	../axel/tokens.py	/^    T_AND = auto()$/;"	kind:variable	line:91
+T_ASL	../axel/tokens.py	/^    T_ASL = auto()$/;"	kind:variable	line:92
+T_ASR	../axel/tokens.py	/^    T_ASR = auto()$/;"	kind:variable	line:93
+T_B	../axel/tokens.py	/^    T_B = auto()$/;"	kind:variable	line:78
+T_BCC	../axel/tokens.py	/^    T_BCC = auto()$/;"	kind:variable	line:94
+T_BCS	../axel/tokens.py	/^    T_BCS = auto()$/;"	kind:variable	line:95
+T_BEQ	../axel/tokens.py	/^    T_BEQ = auto()$/;"	kind:variable	line:96
+T_BGE	../axel/tokens.py	/^    T_BGE = auto()$/;"	kind:variable	line:97
+T_BGT	../axel/tokens.py	/^    T_BGT = auto()$/;"	kind:variable	line:98
+T_BHI	../axel/tokens.py	/^    T_BHI = auto()$/;"	kind:variable	line:99
+T_BIT	../axel/tokens.py	/^    T_BIT = auto()$/;"	kind:variable	line:100
+T_BLE	../axel/tokens.py	/^    T_BLE = auto()$/;"	kind:variable	line:101
+T_BLS	../axel/tokens.py	/^    T_BLS = auto()$/;"	kind:variable	line:102
+T_BLT	../axel/tokens.py	/^    T_BLT = auto()$/;"	kind:variable	line:103
+T_BMI	../axel/tokens.py	/^    T_BMI = auto()$/;"	kind:variable	line:104
+T_BNE	../axel/tokens.py	/^    T_BNE = auto()$/;"	kind:variable	line:105
+T_BPL	../axel/tokens.py	/^    T_BPL = auto()$/;"	kind:variable	line:106
+T_BRA	../axel/tokens.py	/^    T_BRA = auto()$/;"	kind:variable	line:107
+T_BSR	../axel/tokens.py	/^    T_BSR = auto()$/;"	kind:variable	line:108
+T_BVC	../axel/tokens.py	/^    T_BVC = auto()$/;"	kind:variable	line:109
+T_BVS	../axel/tokens.py	/^    T_BVS = auto()$/;"	kind:variable	line:110
+T_CBA	../axel/tokens.py	/^    T_CBA = auto()$/;"	kind:variable	line:111
+T_CLC	../axel/tokens.py	/^    T_CLC = auto()$/;"	kind:variable	line:112
+T_CLI	../axel/tokens.py	/^    T_CLI = auto()$/;"	kind:variable	line:113
+T_CLR	../axel/tokens.py	/^    T_CLR = auto()$/;"	kind:variable	line:114
+T_CLV	../axel/tokens.py	/^    T_CLV = auto()$/;"	kind:variable	line:115
+T_CMP	../axel/tokens.py	/^    T_CMP = auto()$/;"	kind:variable	line:116
+T_COM	../axel/tokens.py	/^    T_COM = auto()$/;"	kind:variable	line:117
+T_COMMA	../axel/tokens.py	/^    T_COMMA = auto()$/;"	kind:variable	line:44
+T_CPX	../axel/tokens.py	/^    T_CPX = auto()$/;"	kind:variable	line:118
+T_DAA	../axel/tokens.py	/^    T_DAA = auto()$/;"	kind:variable	line:119
+T_DEC	../axel/tokens.py	/^    T_DEC = auto()$/;"	kind:variable	line:120
+T_DES	../axel/tokens.py	/^    T_DES = auto()$/;"	kind:variable	line:121
+T_DEX	../axel/tokens.py	/^    T_DEX = auto()$/;"	kind:variable	line:122
+T_DIR_ADDR_UINT8	../axel/tokens.py	/^    T_DIR_ADDR_UINT8 = auto()$/;"	kind:variable	line:50
+T_DISP_ADDR_INT8	../axel/tokens.py	/^    T_DISP_ADDR_INT8 = auto()$/;"	kind:variable	line:52
+T_EOR	../axel/tokens.py	/^    T_EOR = auto()$/;"	kind:variable	line:123
+T_EQUAL	../axel/tokens.py	/^    T_EQUAL = auto()$/;"	kind:variable	line:43
+T_EXT_ADDR_UINT16	../axel/tokens.py	/^    T_EXT_ADDR_UINT16 = auto()$/;"	kind:variable	line:51
+T_IMM_UINT16	../axel/tokens.py	/^    T_IMM_UINT16 = auto()$/;"	kind:variable	line:49
+T_IMM_UINT8	../axel/tokens.py	/^    T_IMM_UINT8 = auto()$/;"	kind:variable	line:48
+T_INC	../axel/tokens.py	/^    T_INC = auto()$/;"	kind:variable	line:124
+T_INS	../axel/tokens.py	/^    T_INS = auto()$/;"	kind:variable	line:125
+T_INX	../axel/tokens.py	/^    T_INX = auto()$/;"	kind:variable	line:126
+T_JMP	../axel/tokens.py	/^    T_JMP = auto()$/;"	kind:variable	line:127
+T_JSR	../axel/tokens.py	/^    T_JSR = auto()$/;"	kind:variable	line:128
+T_LABEL	../axel/tokens.py	/^    T_LABEL = auto()$/;"	kind:variable	line:42
+T_LDA	../axel/tokens.py	/^    T_LDA = auto()$/;"	kind:variable	line:129
+T_LDS	../axel/tokens.py	/^    T_LDS = auto()$/;"	kind:variable	line:130
+T_LDX	../axel/tokens.py	/^    T_LDX = auto()$/;"	kind:variable	line:131
+T_LSR	../axel/tokens.py	/^    T_LSR = auto()$/;"	kind:variable	line:132
+T_LVALUE	../axel/tokens.py	/^    T_LVALUE = auto()$/;"	kind:variable	line:41
+T_MNEMONIC	../axel/tokens.py	/^    T_MNEMONIC = auto()$/;"	kind:variable	line:45
+T_NEG	../axel/tokens.py	/^    T_NEG = auto()$/;"	kind:variable	line:133
+T_NOP	../axel/tokens.py	/^    T_NOP = auto()$/;"	kind:variable	line:134
+T_ORA	../axel/tokens.py	/^    T_ORA = auto()$/;"	kind:variable	line:135
+T_PC	../axel/tokens.py	/^    T_PC = auto()$/;"	kind:variable	line:80
+T_PSH	../axel/tokens.py	/^    T_PSH = auto()$/;"	kind:variable	line:136
+T_PUL	../axel/tokens.py	/^    T_PUL = auto()$/;"	kind:variable	line:137
+T_REGISTER	../axel/tokens.py	/^    T_REGISTER = auto()$/;"	kind:variable	line:46
+T_ROL	../axel/tokens.py	/^    T_ROL = auto()$/;"	kind:variable	line:138
+T_ROR	../axel/tokens.py	/^    T_ROR = auto()$/;"	kind:variable	line:139
+T_RTI	../axel/tokens.py	/^    T_RTI = auto()$/;"	kind:variable	line:140
+T_RTS	../axel/tokens.py	/^    T_RTS = auto()$/;"	kind:variable	line:141
+T_SBA	../axel/tokens.py	/^    T_SBA = auto()$/;"	kind:variable	line:142
+T_SBC	../axel/tokens.py	/^    T_SBC = auto()$/;"	kind:variable	line:143
+T_SEC	../axel/tokens.py	/^    T_SEC = auto()$/;"	kind:variable	line:144
+T_SEI	../axel/tokens.py	/^    T_SEI = auto()$/;"	kind:variable	line:145
+T_SEV	../axel/tokens.py	/^    T_SEV = auto()$/;"	kind:variable	line:146
+T_SP	../axel/tokens.py	/^    T_SP = auto()$/;"	kind:variable	line:81
+T_SR	../axel/tokens.py	/^    T_SR = auto()$/;"	kind:variable	line:82
+T_STA	../axel/tokens.py	/^    T_STA = auto()$/;"	kind:variable	line:147
+T_STS	../axel/tokens.py	/^    T_STS = auto()$/;"	kind:variable	line:148
+T_STX	../axel/tokens.py	/^    T_STX = auto()$/;"	kind:variable	line:149
+T_SUB	../axel/tokens.py	/^    T_SUB = auto()$/;"	kind:variable	line:150
+T_SWI	../axel/tokens.py	/^    T_SWI = auto()$/;"	kind:variable	line:151
+T_TAB	../axel/tokens.py	/^    T_TAB = auto()$/;"	kind:variable	line:152
+T_TAP	../axel/tokens.py	/^    T_TAP = auto()$/;"	kind:variable	line:153
+T_TBA	../axel/tokens.py	/^    T_TBA = auto()$/;"	kind:variable	line:154
+T_TPA	../axel/tokens.py	/^    T_TPA = auto()$/;"	kind:variable	line:155
+T_TST	../axel/tokens.py	/^    T_TST = auto()$/;"	kind:variable	line:156
+T_TSX	../axel/tokens.py	/^    T_TSX = auto()$/;"	kind:variable	line:157
+T_TXS	../axel/tokens.py	/^    T_TXS = auto()$/;"	kind:variable	line:158
+T_UNKNOWN	../axel/tokens.py	/^    T_UNKNOWN = auto()$/;"	kind:variable	line:47
+T_WAI	../axel/tokens.py	/^    T_WAI = auto()$/;"	kind:variable	line:159
+T_X	../axel/tokens.py	/^    T_X = auto()$/;"	kind:variable	line:79
+TableField	../axel/symbol.py	/^TableField = Tuple[U_Int16, str, Union[U_Int16, str]]$/;"	kind:variable	line:56
+Token	../axel/tokens.py	/^class Token(TokenEnum):$/;"	kind:class	line:36
+TokenEnum	../axel/tokens.py	/^class TokenEnum(Enum):$/;"	kind:class	line:21
+U_Int16	../axel/symbol.py	/^class U_Int16:$/;"	kind:class	line:37
+U_Int8	../axel/symbol.py	/^class U_Int8:$/;"	kind:class	line:18
+__add__	../axel/symbol.py	/^    def __add__(self, of: int) -> int:$/;"	kind:member	line:22
+__add__	../axel/symbol.py	/^    def __add__(self, of: int) -> int:$/;"	kind:member	line:41
+__iadd__	../axel/symbol.py	/^    def __iadd__(self, of: int) -> int:$/;"	kind:member	line:25
+__iadd__	../axel/symbol.py	/^    def __iadd__(self, of: int) -> int:$/;"	kind:member	line:44
+__init__	../axel/lexer.py	/^    def __init__(self, source: str) -> None:$/;"	kind:member	line:30
+__init__	../axel/symbol.py	/^    def __init__(self) -> None:$/;"	kind:member	line:60
+__init__	../axel/symbol.py	/^    def __init__(self, num: int) -> None:$/;"	kind:member	line:19
+__init__	../axel/symbol.py	/^    def __init__(self, num: int) -> None:$/;"	kind:member	line:38
+__init__.py	../axel/__init__.py	1;"	kind:file	line:1
+__init__.py	../test/__init__.py	1;"	kind:file	line:1
+__isub__	../axel/symbol.py	/^    def __isub__(self, of: int) -> int:$/;"	kind:member	line:32
+__isub__	../axel/symbol.py	/^    def __isub__(self, of: int) -> int:$/;"	kind:member	line:51
+__iter__	../axel/lexer.py	/^    def __iter__(self: M) -> M:$/;"	kind:member	line:51
+__main__.py	../axel/__main__.py	1;"	kind:file	line:1
+__next__	../axel/lexer.py	/^    def __next__(self) -> TokenEnum:$/;"	kind:member	line:55
+__sub__	../axel/symbol.py	/^    def __sub__(self, of: int) -> int:$/;"	kind:member	line:29
+__sub__	../axel/symbol.py	/^    def __sub__(self, of: int) -> int:$/;"	kind:member	line:48
+_comma_token	../axel/lexer.py	/^    def _comma_token(self, term: str) -> Optional[TokenEnum]:$/;"	kind:member	line:174
+_dec	../axel/lexer.py	/^    def _dec(self) -> None:$/;"	kind:member	line:90
+_direct_or_extended_token	../axel/lexer.py	/^    def _direct_or_extended_token(self, term: str) -> Optional[TokenEnum]:$/;"	kind:member	line:221
+_displacement_token	../axel/lexer.py	/^    def _displacement_token(self, term: str) -> Optional[TokenEnum]:$/;"	kind:member	line:232
+_equal_token	../axel/lexer.py	/^    def _equal_token(self, term: str) -> Optional[TokenEnum]:$/;"	kind:member	line:200
+_generate_next_value_	../axel/tokens.py	/^    def _generate_next_value_(  # type: ignore$/;"	kind:member	line:27
+_immediate_token	../axel/lexer.py	/^    def _immediate_token(self, term: str) -> Optional[TokenEnum]:$/;"	kind:member	line:210
+_inc	../axel/lexer.py	/^    def _inc(self) -> None:$/;"	kind:member	line:86
+_label_token	../axel/lexer.py	/^    def _label_token(self, term: str) -> Optional[TokenEnum]:$/;"	kind:member	line:185
+_lvalue_token	../axel/lexer.py	/^    def _lvalue_token(self, term: str) -> Optional[TokenEnum]:$/;"	kind:member	line:167
+_make_lexer	../test/integration/lexer_tokenization_test.py	/^    def _make_lexer(source):$/;"	kind:function	line:23
+_make_lexer	../test/unit/lexer_test.py	/^    def _make_lexer(source):$/;"	kind:function	line:23
+_mnemonic_token	../axel/lexer.py	/^    def _mnemonic_token(self, term: str) -> Optional[TokenEnum]:$/;"	kind:member	line:241
+_peek_next	../axel/lexer.py	/^    def _peek_next(self) -> str:$/;"	kind:member	line:107
+_read_term	../axel/lexer.py	/^    def _read_term(self) -> str:$/;"	kind:member	line:94
+_register_token	../axel/lexer.py	/^    def _register_token(self, term: str) -> Optional[TokenEnum]:$/;"	kind:member	line:265
+_reset	../axel/lexer.py	/^    def _reset(self) -> None:$/;"	kind:member	line:122
+_set_token	../axel/lexer.py	/^    def _set_token(self, token: TokenEnum, term: str) -> None:$/;"	kind:member	line:129
+_skip_to_next_line	../axel/lexer.py	/^    def _skip_to_next_line(self) -> None:$/;"	kind:member	line:150
+_skip_whitespace_and_comments	../axel/lexer.py	/^    def _skip_whitespace_and_comments(self) -> None:$/;"	kind:member	line:137
+assembler.py	../axel/assembler.py	1;"	kind:file	line:1
+conftest.py	../test/conftest.py	1;"	kind:file	line:1
+expected	../test/integration/lexer_tokenization_test.py	/^expected = deque([$/;"	kind:variable	line:28
+get	../axel/symbol.py	/^    def get(self, label: str) -> TableField:$/;"	kind:member	line:70
+lexer	../test/integration/lexer_tokenization_test.py	/^def lexer() -> Lexer:$/;"	kind:function	line:22
+lexer	../test/unit/lexer_test.py	/^def lexer() -> Lexer:$/;"	kind:function	line:22
+lexer.py	../axel/lexer.py	1;"	kind:file	line:1
+lexer_test.py	../test/unit/lexer_test.py	1;"	kind:file	line:1
+lexer_tokenization_test.py	../test/integration/lexer_tokenization_test.py	1;"	kind:file	line:1
+opcode.py	../axel/opcode.py	1;"	kind:file	line:1
+parser.py	../axel/parser.py	1;"	kind:file	line:1
+pointer	../axel/lexer.py	/^    def pointer(self) -> str:$/;"	kind:member	line:44
+set	../axel/symbol.py	/^    def set(self,$/;"	kind:member	line:63
+symbol.py	../axel/symbol.py	1;"	kind:file	line:1
+test	../axel/__main__.py	/^    test = Lexer(f.read())$/;"	kind:variable	line:18
+test_comma_token	../test/unit/lexer_test.py	/^def test_comma_token(lexer):$/;"	kind:function	line:124
+test_dec	../test/unit/lexer_test.py	/^def test_dec(lexer):$/;"	kind:function	line:71
+test_direct_or_extended_token	../test/unit/lexer_test.py	/^def test_direct_or_extended_token(lexer):$/;"	kind:function	line:158
+test_displacement_token	../test/unit/lexer_test.py	/^def test_displacement_token(lexer):$/;"	kind:function	line:170
+test_equal_token	../test/unit/lexer_test.py	/^def test_equal_token(lexer):$/;"	kind:function	line:140
+test_immediate_token	../test/unit/lexer_test.py	/^def test_immediate_token(lexer):$/;"	kind:function	line:146
+test_inc	../test/unit/lexer_test.py	/^def test_inc(lexer):$/;"	kind:function	line:64
+test_label_token	../test/unit/lexer_test.py	/^def test_label_token(lexer):$/;"	kind:function	line:132
+test_lexer_tokenization	../test/integration/lexer_tokenization_test.py	/^def test_lexer_tokenization() -> None:$/;"	kind:function	line:52
+test_lvalue_token	../test/unit/lexer_test.py	/^def test_lvalue_token(lexer):$/;"	kind:function	line:116
+test_mnemonic_token	../test/unit/lexer_test.py	/^def test_mnemonic_token(lexer):$/;"	kind:function	line:178
+test_peek_next	../test/unit/lexer_test.py	/^def test_peek_next(lexer):$/;"	kind:function	line:109
+test_read_term	../test/unit/lexer_test.py	/^def test_read_term(lexer):$/;"	kind:function	line:53
+test_register_token	../test/unit/lexer_test.py	/^def test_register_token(lexer):$/;"	kind:function	line:189
+test_reset	../test/unit/lexer_test.py	/^def test_reset(lexer):$/;"	kind:function	line:78
+test_set_token	../test/unit/lexer_test.py	/^def test_set_token(lexer):$/;"	kind:function	line:92
+test_skip_to_next_line	../test/unit/lexer_test.py	/^def test_skip_to_next_line(lexer, whitespace):$/;"	kind:function	line:103
+test_skip_whitespace_comments	../test/unit/lexer_test.py	/^def test_skip_whitespace_comments(lexer, whitespace):$/;"	kind:function	line:41
+tokens.py	../axel/tokens.py	1;"	kind:file	line:1
+whitespace	../test/unit/lexer_test.py	/^def whitespace() -> List[str]:$/;"	kind:function	line:29
