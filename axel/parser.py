@@ -13,9 +13,11 @@
     along with Axel.  If not, see <https://www.gnu.org/licenses/>.
 """
 import axel.tokens as Tokens
-from typing import Union, List
-from axel.lexer import Lexer
-from axel.symbol import Symbol_Table
+from typing import Union, List, overload
+from axel.lexer import Lexer, Yylex
+from axel.symbol import Symbol_Table, U_Int16
+
+token_t = Union[Tokens.Token, Tokens.Mnemonic, Tokens.Register]
 
 
 class Parser:
@@ -30,22 +32,47 @@ class Parser:
     def parse(self) -> None:
         pass
 
-    def take(self, oneOf: List[Union[Tokens.Token,
-                               Tokens.Mnemonic,
-                               Tokens.Register]]) -> None:
-        next_token = next(self.lexer)
-        if next_token not in oneOf:
-            lexer = self.lexer
-            location = 0 if lexer._pointer - 5 < 0 else lexer._pointer - 5
-            error = lexer._source[location:12]
-            raise SyntaxError(f'Parser failed near "{error.strip()}", '
-                              f'expected one of "{oneOf}"')
+    @overload
+    def take(self, test: List[token_t]) -> None: ...
+
+    @overload
+    def take(self, test: token_t) -> None: ...
+
+    def take(self, test: Union[token_t, List[token_t]]) -> None:
+        lexer = self.lexer
+        next_token = next(lexer)
+        location = 0 if lexer._pointer - 5 < 0 else lexer._pointer - 5
+        error = lexer._source[location:12]
+        if isinstance(test, list):
+            if next_token not in test:
+                options = list(map(lambda x: x.name, test))
+                lexer.recede()
+                raise SyntaxError(f'Parser failed near "{error}", '
+                                  f'''expected one of "{','.join(options)}" '''
+                                  f'got "{next_token.name}"')
+        else:
+            if next_token is not test:
+                lexer.recede()
+                raise SyntaxError(f'Parser failed near "{error}", '
+                                  f'expected "{test.name}" '
+                                  f'got "{next_token.name}"')
 
     def line(self) -> None:
         pass
 
-    def variable(self) -> None:
-        pass
+    def variable(self, label: Yylex, addr: int) -> None:
+        name = label['data']
+        self.take(Tokens.Token.T_EQUAL)
+        self.take([Tokens.Token.T_DIR_ADDR_UINT8,
+                   Tokens.Token.T_EXT_ADDR_UINT16])
+        if isinstance(name, str) and self.lexer.yylex['data'] is not None:
+            self.table.set(
+                name,
+                U_Int16(addr),
+                'variable',
+                self.lexer.yylex['data'])
+        else:
+            raise SyntaxError(f'Parser failed to parse variable "{name}"')
 
     def label(self) -> None:
         pass

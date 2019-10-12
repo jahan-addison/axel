@@ -20,6 +20,11 @@ from mypy_extensions import TypedDict
 M = TypeVar('M', bound='Lexer')
 
 
+class Yylex(TypedDict, total=False):
+    token: TokenEnum
+    data: Optional[str]
+
+
 class Lexer:
     """Lexer Iterator for the 6800 assembly language.
 
@@ -28,16 +33,13 @@ class Lexer:
 
     """
     def __init__(self, source: str) -> None:
-        Scanner = TypedDict('Scanner', {
-            'token': TokenEnum,
-            'data': Optional[str]
-        })
         self._source: str = source
         self._pointer: int = 0
-        self.yylex: Scanner = {
+        self.yylex: Yylex = {
             'token': Token.T_UNKNOWN,
             'data': None
         }
+        self._at = self._pointer
         self._last: TokenEnum = Token.T_UNKNOWN
 
     @property
@@ -49,11 +51,12 @@ class Lexer:
             return ''
 
     def __iter__(self: M) -> M:
-        """Iterator """
+        """Iterator instance. """
         return self
 
     def __next__(self) -> TokenEnum:
         """Scan and retrieve next token on each iteration. """
+        self._at = self._pointer
         term = self._read_term()
         token: Optional[TokenEnum] = None
         if not term:
@@ -82,6 +85,12 @@ class Lexer:
         token = token or self._lvalue_token(term)
 
         return token or Token.T_UNKNOWN
+
+    def recede(self) -> None:
+        """Set the pointer to before the last token.
+
+        This is useful during parsing to deal with erroneous acceptance."""
+        self._pointer = self._at
 
     def _inc(self) -> None:
         """Increment the pointer, similar to pointer arithmetic."""

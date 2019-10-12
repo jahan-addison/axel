@@ -6,7 +6,7 @@ type:
 	poetry run python -m mypy --strict --ignore-missing-imports $(project)/*.py
 
 lint: type
-	poetry run python -m flake8 --ignore $(project)/*.py
+	poetry run python -m flake8 --ignore E704,F811 $(project)/*.py
 
 test:
 	poetry run pytest -s
