@@ -61,6 +61,14 @@ def test_read_term(lexer):
     assert term3 == '#$10'
 
 
+def test_recede(lexer):
+    test = lexer('ADD B ##10')
+    test._pointer = 4
+    test._at = 3
+    test.recede()
+    assert test._pointer == test._at
+
+
 def test_inc(lexer):
     test = lexer('ADD B #$10')
     test._pointer = 3
