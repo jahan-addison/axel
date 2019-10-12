@@ -86,7 +86,7 @@ class Lexer:
 
         return token or Token.T_UNKNOWN
 
-    def recede(self) -> None:
+    def retract(self) -> None:
         """Set the pointer to before the last token.
 
         This is useful during parsing to deal with erroneous acceptance."""

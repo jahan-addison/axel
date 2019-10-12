@@ -46,13 +46,13 @@ class Parser:
         if isinstance(test, list):
             if next_token not in test:
                 options = list(map(lambda x: x.name, test))
-                lexer.recede()
+                lexer.retract()
                 raise SyntaxError(f'Parser failed near "{error}", '
                                   f'''expected one of "{','.join(options)}" '''
                                   f'got "{next_token.name}"')
         else:
             if next_token is not test:
-                lexer.recede()
+                lexer.retract()
                 raise SyntaxError(f'Parser failed near "{error}", '
                                   f'expected "{test.name}" '
                                   f'got "{next_token.name}"')

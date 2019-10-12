@@ -61,11 +61,11 @@ def test_read_term(lexer):
     assert term3 == '#$10'
 
 
-def test_recede(lexer):
+def test_retract(lexer):
     test = lexer('ADD B ##10')
     test._pointer = 4
     test._at = 3
-    test.recede()
+    test.retract()
     assert test._pointer == test._at
 
 
