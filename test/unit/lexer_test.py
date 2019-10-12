@@ -121,12 +121,12 @@ def test_peek_next(lexer):
     assert peek == '#$10'
 
 
-def test_lvalue_token(lexer):
+def test_variable_token(lexer):
     test = lexer('OUT = $F0')
     test._pointer = 3
-    assert test._lvalue_token('OUT') is Token.T_LVALUE
+    assert test._variable_token('OUT') is Token.T_VARIABLE
     test._pointer = 5
-    assert test._lvalue_token('OUT') is None
+    assert test._variable_token('OUT') is None
 
 
 def test_comma_token(lexer):
@@ -142,7 +142,7 @@ def test_label_token(lexer):
     test._pointer = 4
     assert test._label_token('TEST') is Token.T_LABEL
     test._pointer = 6
-    assert test._lvalue_token('TEST') is None
+    assert test._variable_token('TEST') is None
 
 
 def test_equal_token(lexer):

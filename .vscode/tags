@@ -73,7 +73,7 @@ T_LDA	../axel/tokens.py	/^    T_LDA = auto()$/;"	kind:variable	line:129
 T_LDS	../axel/tokens.py	/^    T_LDS = auto()$/;"	kind:variable	line:130
 T_LDX	../axel/tokens.py	/^    T_LDX = auto()$/;"	kind:variable	line:131
 T_LSR	../axel/tokens.py	/^    T_LSR = auto()$/;"	kind:variable	line:132
-T_LVALUE	../axel/tokens.py	/^    T_LVALUE = auto()$/;"	kind:variable	line:41
+T_VARIABLE	../axel/tokens.py	/^    T_VARIABLE = auto()$/;"	kind:variable	line:41
 T_MNEMONIC	../axel/tokens.py	/^    T_MNEMONIC = auto()$/;"	kind:variable	line:45
 T_NEG	../axel/tokens.py	/^    T_NEG = auto()$/;"	kind:variable	line:133
 T_NOP	../axel/tokens.py	/^    T_NOP = auto()$/;"	kind:variable	line:134
@@ -139,7 +139,7 @@ _generate_next_value_	../axel/tokens.py	/^    def _generate_next_value_(  # type
 _immediate_token	../axel/lexer.py	/^    def _immediate_token(self, term: str) -> Optional[TokenEnum]:$/;"	kind:member	line:210
 _inc	../axel/lexer.py	/^    def _inc(self) -> None:$/;"	kind:member	line:86
 _label_token	../axel/lexer.py	/^    def _label_token(self, term: str) -> Optional[TokenEnum]:$/;"	kind:member	line:185
-_lvalue_token	../axel/lexer.py	/^    def _lvalue_token(self, term: str) -> Optional[TokenEnum]:$/;"	kind:member	line:167
+_variable_token	../axel/lexer.py	/^    def _variable_token(self, term: str) -> Optional[TokenEnum]:$/;"	kind:member	line:167
 _make_lexer	../test/integration/lexer_tokenization_test.py	/^    def _make_lexer(source):$/;"	kind:function	line:23
 _make_lexer	../test/unit/lexer_test.py	/^    def _make_lexer(source):$/;"	kind:function	line:23
 _mnemonic_token	../axel/lexer.py	/^    def _mnemonic_token(self, term: str) -> Optional[TokenEnum]:$/;"	kind:member	line:241
@@ -174,7 +174,7 @@ test_immediate_token	../test/unit/lexer_test.py	/^def test_immediate_token(lexer
 test_inc	../test/unit/lexer_test.py	/^def test_inc(lexer):$/;"	kind:function	line:64
 test_label_token	../test/unit/lexer_test.py	/^def test_label_token(lexer):$/;"	kind:function	line:132
 test_lexer_tokenization	../test/integration/lexer_tokenization_test.py	/^def test_lexer_tokenization() -> None:$/;"	kind:function	line:52
-test_lvalue_token	../test/unit/lexer_test.py	/^def test_lvalue_token(lexer):$/;"	kind:function	line:116
+test_variable_token	../test/unit/lexer_test.py	/^def test_variable_token(lexer):$/;"	kind:function	line:116
 test_mnemonic_token	../test/unit/lexer_test.py	/^def test_mnemonic_token(lexer):$/;"	kind:function	line:178
 test_peek_next	../test/unit/lexer_test.py	/^def test_peek_next(lexer):$/;"	kind:function	line:109
 test_read_term	../test/unit/lexer_test.py	/^def test_read_term(lexer):$/;"	kind:function	line:53

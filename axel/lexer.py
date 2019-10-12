@@ -28,8 +28,8 @@ class Yylex(TypedDict, total=False):
 class Lexer:
     """Lexer Iterator for the 6800 assembly language.
 
-    LL(1) tokenization of a source string into a stream, sets
-    last token and scanner data during each __next__ call.
+    LL(1) tokenization and scanner of a source string into a stream,
+    sets last token and scanner data during each __next__ call.
 
     """
     def __init__(self, source: str) -> None:
@@ -49,6 +49,11 @@ class Lexer:
             return self._source[self._pointer]
         except IndexError:
             return ''
+
+    @property
+    def last_addr(self) -> int:
+        """The pointer index of source before the last iteration. """
+        return self._at
 
     def __iter__(self: M) -> M:
         """Iterator instance. """
@@ -82,7 +87,7 @@ class Lexer:
 
         token = token or self._displacement_token(term)
 
-        token = token or self._lvalue_token(term)
+        token = token or self._variable_token(term)
 
         return token or Token.T_UNKNOWN
 
@@ -173,11 +178,11 @@ class Lexer:
                         and self.pointer != '\r':
                     skip = False
 
-    def _lvalue_token(self, term: str) -> Optional[TokenEnum]:
-        """Tokenize lvalues. (i.e. *addressable* operands) """
+    def _variable_token(self, term: str) -> Optional[TokenEnum]:
+        """Tokenize variables. (i.e. *addressable* operands) """
         if self._peek_next() == '=':
-            self._set_token(Token.T_LVALUE, term)
-            return Token.T_LVALUE
+            self._set_token(Token.T_VARIABLE, term)
+            return Token.T_VARIABLE
         return None
 
     def _comma_token(self, term: str) -> Optional[TokenEnum]:
@@ -209,7 +214,7 @@ class Lexer:
     def _equal_token(self, term: str) -> Optional[TokenEnum]:
         """Equal assignment.
 
-        Tokenize equal assignments between lvalues and
+        Tokenize equal assignments between variables and
         addressable operands."""
         if term == '=':
             self._set_token(Token.T_EQUAL, term)
@@ -228,7 +233,9 @@ class Lexer:
         return None
 
     def _direct_or_extended_token(self, term: str) -> Optional[TokenEnum]:
-        """Tokenize direct or extended 1 byte or 2 byte addressable memory. """
+        """Tokenize direct or extended 1 byte or 2 byte addressable memory.
+
+        TODO: Decimal, binary, single character. """
         if term[:1] == '$':
             if len(bytes.fromhex(term[1:])) == 1:
                 self._set_token(Token.T_DIR_ADDR_UINT8, term)

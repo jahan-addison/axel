@@ -26,13 +26,13 @@ def lexer() -> Lexer:
     return _make_lexer
 
 expected = deque([
-    Token.T_LVALUE,
+    Token.T_VARIABLE,
     Token.T_EQUAL,
     Token.T_EXT_ADDR_UINT16,
-    Token.T_LVALUE,
+    Token.T_VARIABLE,
     Token.T_EQUAL,
     Token.T_DIR_ADDR_UINT8,
-    Token.T_LVALUE,
+    Token.T_VARIABLE,
     Token.T_EQUAL,
     Token.T_EXT_ADDR_UINT16,
     Token.T_LABEL,

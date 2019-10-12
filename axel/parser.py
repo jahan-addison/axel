@@ -24,13 +24,26 @@ class Parser:
     def __init__(self, source: str) -> None:
         self.addressing_mode: Tokens.AddressingMode
         self.lexer: Lexer = Lexer(source)
-        self.table: Symbol_Table = Symbol_Table()
+        self.symbols: Symbol_Table = Symbol_Table()
+
+    def _error(self,
+               source: str,
+               expected: str,
+               found: Tokens.TokenEnum) -> None:
+        raise SyntaxError(
+            f'Parser failed near "{source}", '
+            f'expected one of "{expected}" '
+            f'got "{found.name}"')
 
     def parse_symbols(self) -> None:
         pass
 
     def parse(self) -> None:
         pass
+
+    def parse_immediate_value(self, value: str) -> bytes:
+        """TODO: Decimal, binary, single character. """
+        return bytes.fromhex(value[1:])
 
     @overload
     def take(self, test: List[token_t]) -> None: ...
@@ -47,35 +60,37 @@ class Parser:
             if next_token not in test:
                 options = list(map(lambda x: x.name, test))
                 lexer.retract()
-                raise SyntaxError(f'Parser failed near "{error}", '
-                                  f'''expected one of "{','.join(options)}" '''
-                                  f'got "{next_token.name}"')
+                self._error(error, ','.join(options), next_token)
         else:
             if next_token is not test:
                 lexer.retract()
-                raise SyntaxError(f'Parser failed near "{error}", '
-                                  f'expected "{test.name}" '
-                                  f'got "{next_token.name}"')
+                self._error(error, test.name, next_token)
 
     def line(self) -> None:
         pass
 
-    def variable(self, label: Yylex, addr: int) -> None:
+    def variable(self, label: Yylex) -> None:
         name = label['data']
+        addr = self.lexer.last_addr
         self.take(Tokens.Token.T_EQUAL)
         self.take([Tokens.Token.T_DIR_ADDR_UINT8,
                    Tokens.Token.T_EXT_ADDR_UINT16])
         if isinstance(name, str) and self.lexer.yylex['data'] is not None:
-            self.table.set(
+            self.symbols.set(
                 name,
                 U_Int16(addr),
                 'variable',
-                self.lexer.yylex['data'])
+                self.parse_immediate_value(self.lexer.yylex['data']))
         else:
             raise SyntaxError(f'Parser failed to parse variable "{name}"')
 
-    def label(self) -> None:
-        pass
+    def label(self, label: Yylex) -> None:
+        name = label['data']
+        addr = self.lexer.last_addr
+        if isinstance(name, str):
+            self.symbols.set(name, U_Int16(addr), 'label', U_Int16(addr))
+        else:
+            raise SyntaxError(f'Parser failed to parse label "{name}"')
 
     def operand(self) -> None:
         pass

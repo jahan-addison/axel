@@ -38,7 +38,7 @@ class Token(TokenEnum):
 
     General language lexemes and data types.
     """
-    T_LVALUE = auto()
+    T_VARIABLE = auto()
     T_LABEL = auto()
     T_EQUAL = auto()
     T_COMMA = auto()

@@ -19,6 +19,9 @@ class U_Int8:
     def __init__(self, num: int) -> None:
         self.num = num & 255
 
+    def __repr__(self) -> str:
+        return str(self.num)
+
     def __add__(self, of: int) -> int:
         return (self.num + of) & 255
 
@@ -38,6 +41,9 @@ class U_Int16:
     def __init__(self, num: int) -> None:
         self.num = num & 65535
 
+    def __repr__(self) -> str:
+        return str(self.num)
+
     def __add__(self, of: int) -> int:
         return (self.num + of) & 65535
 
@@ -53,7 +59,7 @@ class U_Int16:
         return self.num
 
 
-TableField = Tuple[U_Int16, str, Union[U_Int16, str]]
+TableField = Tuple[U_Int16, str, Union[U_Int16, str, bytes]]
 
 
 class Symbol_Table:
@@ -64,7 +70,7 @@ class Symbol_Table:
             label: str,
             addr: U_Int16,
             type: str,
-            value: Union[U_Int16, str]) -> None:
+            value: Union[U_Int16, str, bytes]) -> None:
         self.table[label] = (addr, type, value)
 
     def get(self, label: str) -> TableField:

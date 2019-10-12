@@ -29,7 +29,11 @@ def code() -> List[str]:
     return ['''SAME	LDA B DIGADD+1	; FIX DISPLAY ADDRESS
             ADD B #$10
         ''',
-        'LDA B DIGADD+1',
+        '''OUTCH = $FE3A
+           START JSR REDIS	;SET UP FIRST DISPLAY ADDRESS
+        ''',
+        '''START
+           JSR REDIS	;SET UP FIRST DISPLAY ADDRESS''',
         '''    ; This is a comment
         ADD B #$10
         ''',
@@ -46,3 +50,22 @@ def test_take(parser, code):
     test.take([Tokens.Register.T_A, Tokens.Register.T_B])
     test.take([Tokens.Token.T_DISP_ADDR_INT8, Tokens.Token.T_EXT_ADDR_UINT16])
 
+def test_variable(parser, code):
+    test = parser(code[1])
+    next(test.lexer) # eat token
+    test.variable(test.lexer.yylex)
+    entry = test.symbols.table['OUTCH']
+    assert entry[0].num == 0
+    assert entry[1] == 'variable'
+    assert entry[2] == b'\xfe:'
+    assert test.lexer._pointer == 13
+
+def test_label(parser, code):
+    test = parser(code[2])
+    next(test.lexer) # eat token
+    test.label(test.lexer.yylex)
+    entry = test.symbols.table['START']
+    assert entry[0].num == 0
+    assert entry[1] == 'label'
+    assert entry[2].num == 0
+    assert test.lexer._pointer == 17
