@@ -15,7 +15,7 @@
 import pytest
 from typing import List
 import axel.tokens as Tokens  # Token, Mnemonic, Register
-from axel.parser import Parser
+from axel.parser import Parser, AssemblerParserError
 
 @pytest.fixture
 def parser() -> Parser:
@@ -39,10 +39,10 @@ def code() -> List[str]:
 def test_take(parser, code):
     test = parser(code[0])
     test.take(Tokens.Lexeme.T_LABEL)
-    with pytest.raises(SyntaxError):
+    with pytest.raises(AssemblerParserError):
         test.take(Tokens.Mnemonic.T_ABA)
     test.take(Tokens.Mnemonic.T_LDA)
-    with pytest.raises(SyntaxError):
+    with pytest.raises(AssemblerParserError):
         test.take([Tokens.Lexeme.T_EXT_ADDR_UINT16, Tokens.Lexeme.T_IMM_UINT8])
     test.take([Tokens.Register.T_A, Tokens.Register.T_B])
     test.take([Tokens.Lexeme.T_DISP_ADDR_INT8, Tokens.Lexeme.T_EXT_ADDR_UINT16])
