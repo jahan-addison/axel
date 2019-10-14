@@ -14,7 +14,7 @@
 """
 import axel.tokens as Tokens
 from collections import deque
-from typing import Union, List, overload, Deque
+from typing import Union, List, overload, Deque, Tuple
 from axel.lexer import Lexer, Yylex
 from axel.symbol import Symbol_Table, U_Int16
 
@@ -33,11 +33,8 @@ class Parser:
                found: Tokens.TokenEnum) -> None:
         raise SyntaxError(
             f'Parser failed near "{source}", '
-            f'expected one of "{expected}" '
-            f'got "{found.name}"')
-
-    def parse(self) -> None:
-        pass
+            f'expected one of "{expected}", '
+            f'but found "{found.name}"')
 
     def parse_immediate_value(self, value: str) -> bytes:
         """TODO: Decimal, binary, single character. """
@@ -67,8 +64,25 @@ class Parser:
                 lexer.retract()
                 self._error(error, test.name, next_token)
 
-    def line(self) -> None:
-        pass
+    def line(self) -> Union[
+            Tuple[Tokens.TokenEnum, Deque[Yylex]],
+            bool]:
+        lexer = self.lexer
+        try:
+            next(lexer)
+            current = lexer.last_token
+            if current == Tokens.Lexeme.T_LABEL:
+                self.label(lexer.yylex)
+                self.take(list(Tokens.Mnemonic))
+                return self.instruction(lexer.yylex)
+            elif current == Tokens.Lexeme.T_VARIABLE:
+                self.variable(lexer.yylex)
+                return True
+            elif isinstance(current, Tokens.Mnemonic):
+                return self.instruction(lexer.yylex)
+        except StopIteration:
+            return False #  Done.
+        return False
 
     def variable(self, label: Yylex) -> None:
         name = label['data']
@@ -112,7 +126,11 @@ class Parser:
             except SyntaxError:
                 self.lexer.retract()
                 break
+            except StopIteration:
+                break
         return stack
 
-    def instruction(self) -> None:
-        pass
+    def instruction(
+            self,
+            instruction: Yylex) -> Tuple[Tokens.TokenEnum, Deque[Yylex]]:
+        return (instruction['token'], self.operands())

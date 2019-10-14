@@ -26,14 +26,15 @@ def parser() -> Parser:
 
 @pytest.fixture
 def code() -> List[str]:
-    return ['''SAME	LDA B DIGADD+1	; FIX DISPLAY ADDRESS
+    return ['''SAME LDA B DIGADD+1	; FIX DISPLAY ADDRESS
             ADD B #$10
         ''',
         '''OUTCH = $FE3A
            START JSR REDIS	;SET UP FIRST DISPLAY ADDRESS
         ''',
         '''START
-           JSR REDIS	;SET UP FIRST DISPLAY ADDRESS''']
+           JSR REDIS	;SET UP FIRST DISPLAY ADDRESS''',
+        'ADD B #$10']
 
 def test_take(parser, code):
     test = parser(code[0])
@@ -45,6 +46,15 @@ def test_take(parser, code):
         test.take([Tokens.Lexeme.T_EXT_ADDR_UINT16, Tokens.Lexeme.T_IMM_UINT8])
     test.take([Tokens.Register.T_A, Tokens.Register.T_B])
     test.take([Tokens.Lexeme.T_DISP_ADDR_INT8, Tokens.Lexeme.T_EXT_ADDR_UINT16])
+
+def test_line(parser, code):
+    test = parser(code[3])
+    instruction, operands = test.line()
+    assert instruction == Tokens.Mnemonic.T_ADD
+    assert operands.pop()['token'] == Tokens.Register.T_B
+    assert operands.pop()['token'] == Tokens.Lexeme.T_IMM_UINT8
+    assert len(operands) == 0
+
 
 def test_variable(parser, code):
     test = parser(code[1])

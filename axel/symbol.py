@@ -37,6 +37,28 @@ class U_Int8:
         return self.num
 
 
+class Int8:
+    def __init__(self, num: int) -> None:
+        self.num = (num << 24) >> 24
+
+    def __repr__(self) -> str:
+        return str(self.num)
+
+    def __add__(self, of: int) -> int:
+        return ((self.num + of) << 24) >> 24
+
+    def __iadd__(self, of: int) -> int:
+        self.num = self.__add__(of)
+        return self.num
+
+    def __sub__(self, of: int) -> int:
+        return ((self.num - of) << 24) >> 24
+
+    def __isub__(self, of: int) -> int:
+        self.num = self.__sub__(of)
+        return self.num
+
+
 class U_Int16:
     def __init__(self, num: int) -> None:
         self.num = num & 65535

@@ -51,6 +51,11 @@ class Lexer:
             return ''
 
     @property
+    def last_token(self) -> TokenEnum:
+        """The last lexical token. """
+        return self._last
+
+    @property
     def last_addr(self) -> int:
         """The pointer index of source before the last iteration. """
         return self._at
