@@ -1,7 +1,7 @@
 # Axel
 ## Motorola 6800 assembler 💻
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/5/5a/Motorola_MC6800_microprocessor.jpg" width="900" />
+<img src="https://upload.wikimedia.org/wikipedia/commons/5/5a/Motorola_MC6800_microprocessor.jpg" width="780" />
 
 ### Details
 
