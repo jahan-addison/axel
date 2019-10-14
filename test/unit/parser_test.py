@@ -33,22 +33,18 @@ def code() -> List[str]:
            START JSR REDIS	;SET UP FIRST DISPLAY ADDRESS
         ''',
         '''START
-           JSR REDIS	;SET UP FIRST DISPLAY ADDRESS''',
-        '''    ; This is a comment
-        ADD B #$10
-        ''',
-        '''LDA B DIGADD+1 ; This is a comment \nADD B #$10''']
+           JSR REDIS	;SET UP FIRST DISPLAY ADDRESS''']
 
 def test_take(parser, code):
     test = parser(code[0])
-    test.take(Tokens.Token.T_LABEL)
+    test.take(Tokens.Lexeme.T_LABEL)
     with pytest.raises(SyntaxError):
         test.take(Tokens.Mnemonic.T_ABA)
     test.take(Tokens.Mnemonic.T_LDA)
     with pytest.raises(SyntaxError):
-        test.take([Tokens.Token.T_EXT_ADDR_UINT16, Tokens.Token.T_IMM_UINT8])
+        test.take([Tokens.Lexeme.T_EXT_ADDR_UINT16, Tokens.Lexeme.T_IMM_UINT8])
     test.take([Tokens.Register.T_A, Tokens.Register.T_B])
-    test.take([Tokens.Token.T_DISP_ADDR_INT8, Tokens.Token.T_EXT_ADDR_UINT16])
+    test.take([Tokens.Lexeme.T_DISP_ADDR_INT8, Tokens.Lexeme.T_EXT_ADDR_UINT16])
 
 def test_variable(parser, code):
     test = parser(code[1])
@@ -69,3 +65,11 @@ def test_label(parser, code):
     assert entry[1] == 'label'
     assert entry[2].num == 0
     assert test.lexer._pointer == 17
+
+def test_operands(parser, code):
+    test = parser(code[0])
+    test.lexer._pointer = 9
+    operands = test.operands()
+    displacement, register = operands
+    assert register['token'] == Tokens.Register.T_B
+    assert displacement['token'] == Tokens.Lexeme.T_DISP_ADDR_INT8

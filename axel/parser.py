@@ -13,11 +13,12 @@
     along with Axel.  If not, see <https://www.gnu.org/licenses/>.
 """
 import axel.tokens as Tokens
-from typing import Union, List, overload
+from collections import deque
+from typing import Union, List, overload, Deque
 from axel.lexer import Lexer, Yylex
 from axel.symbol import Symbol_Table, U_Int16
 
-token_t = Union[Tokens.Token, Tokens.Mnemonic, Tokens.Register]
+token_t = Union[Tokens.Lexeme, Tokens.Mnemonic, Tokens.Register]
 
 
 class Parser:
@@ -29,21 +30,21 @@ class Parser:
     def _error(self,
                source: str,
                expected: str,
-               found: Tokens.TokenEnum) -> None:
+               found: token_t) -> None:
         raise SyntaxError(
             f'Parser failed near "{source}", '
             f'expected one of "{expected}" '
             f'got "{found.name}"')
-
-    def parse_symbols(self) -> None:
-        pass
 
     def parse(self) -> None:
         pass
 
     def parse_immediate_value(self, value: str) -> bytes:
         """TODO: Decimal, binary, single character. """
-        return bytes.fromhex(value[1:])
+        if value[:1] == '#' and value[1:2] == '$':
+            return bytes.fromhex(value[2:])
+        else:
+            return bytes.fromhex(value[1:])
 
     @overload
     def take(self, test: List[token_t]) -> None: ...
@@ -72,9 +73,9 @@ class Parser:
     def variable(self, label: Yylex) -> None:
         name = label['data']
         addr = self.lexer.last_addr
-        self.take(Tokens.Token.T_EQUAL)
-        self.take([Tokens.Token.T_DIR_ADDR_UINT8,
-                   Tokens.Token.T_EXT_ADDR_UINT16])
+        self.take(Tokens.Lexeme.T_EQUAL)
+        self.take([Tokens.Lexeme.T_DIR_ADDR_UINT8,
+                   Tokens.Lexeme.T_EXT_ADDR_UINT16])
         if isinstance(name, str) and self.lexer.yylex['data'] is not None:
             self.symbols.set(
                 name,
@@ -92,8 +93,26 @@ class Parser:
         else:
             raise SyntaxError(f'Parser failed to parse label "{name}"')
 
-    def operand(self) -> None:
-        pass
+    def operands(self) -> Deque[Yylex]:
+        stack: Deque[Yylex] = deque()
+        datatypes = [
+            Tokens.Lexeme.T_IMM_UINT8,
+            Tokens.Lexeme.T_IMM_UINT16,
+            Tokens.Lexeme.T_DIR_ADDR_UINT8,
+            Tokens.Lexeme.T_EXT_ADDR_UINT16,
+            Tokens.Lexeme.T_DISP_ADDR_INT8,
+        ]
+        while True:
+            try:
+                self.take([
+                    *list(Tokens.Register),
+                    Tokens.Lexeme.T_COMMA,
+                    *datatypes])
+                stack.appendleft(self.lexer.yylex)
+            except SyntaxError:
+                self.lexer.retract()
+                break
+        return stack
 
     def instruction(self) -> None:
         pass

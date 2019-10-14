@@ -13,7 +13,7 @@
     along with Axel.  If not, see <https://www.gnu.org/licenses/>.
 """
 import re
-from axel.tokens import TokenEnum, Token, Register, Mnemonic
+from axel.tokens import TokenEnum, Lexeme as Token, Register, Mnemonic
 from typing import Optional, TypeVar
 from mypy_extensions import TypedDict
 

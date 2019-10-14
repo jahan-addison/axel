@@ -14,7 +14,7 @@
 """
 import pytest
 from typing import List
-from axel.tokens import Token, Mnemonic, Register
+from axel.tokens import Lexeme as Token, Mnemonic, Register
 from axel.lexer import Lexer
 
 

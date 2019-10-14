@@ -33,7 +33,7 @@ class TokenEnum(Enum):
 
 
 @unique
-class Token(TokenEnum):
+class Lexeme(TokenEnum):
     """Lexeme tokens.
 
     General language lexemes and data types.

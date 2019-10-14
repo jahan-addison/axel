@@ -15,7 +15,7 @@
 import pytest
 import pathlib
 from collections import deque
-from axel.tokens import Token, Mnemonic, Register
+from axel.tokens import Lexeme as Token, Mnemonic, Register
 from axel.lexer import Lexer
 
 @pytest.fixture
