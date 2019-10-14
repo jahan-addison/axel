@@ -15,7 +15,7 @@
 import pytest
 import pathlib
 from collections import deque
-from axel.tokens import Lexeme as Token, Mnemonic, Register
+from axel.tokens import Token as Token, Mnemonic, Register
 from axel.lexer import Lexer
 
 @pytest.fixture
@@ -29,20 +29,27 @@ expected = deque([
     Token.T_VARIABLE,
     Token.T_EQUAL,
     Token.T_EXT_ADDR_UINT16,
+    Token.T_EOL,
     Token.T_VARIABLE,
     Token.T_EQUAL,
     Token.T_DIR_ADDR_UINT8,
+    Token.T_EOL,
     Token.T_VARIABLE,
     Token.T_EQUAL,
     Token.T_EXT_ADDR_UINT16,
+    Token.T_EOL,
+    Token.T_EOL,
     Token.T_LABEL,
     Mnemonic.T_JSR,
     Token.T_DISP_ADDR_INT8,
+    Token.T_EOL,
     Mnemonic.T_LDA,
     Register.T_A,
     Token.T_IMM_UINT8,
+    Token.T_EOL,
     Mnemonic.T_BRA,
     Token.T_DISP_ADDR_INT8,
+    Token.T_EOL,
     Token.T_LABEL,
     Mnemonic.T_LDA,
     Register.T_B,

@@ -13,7 +13,7 @@
     along with axel.  If not, see <https://www.gnu.org/licenses/>.
 """
 import re
-from axel.tokens import TokenEnum, Lexeme as Token, Register, Mnemonic
+from axel.tokens import TokenEnum, Token as Token, Register, Mnemonic
 from typing import Optional, TypeVar
 from mypy_extensions import TypedDict
 
@@ -115,28 +115,30 @@ class Lexer:
     def _read_term(self) -> str:
         """Read next term.
 
-        Read the next term from the source string, skipping all
-        whitespace and comments.
+        Read the next term from the source string, skipping all comments.
         """
         term: str = ''
         self._skip_whitespace_and_comments()
-        while self.pointer and not re.match('[,\t ]', self.pointer):
+        if self.pointer == '\r':
+            self._inc()
+            return '\r\n'
+        elif self.pointer == '\n':
+            return '\n'
+        while self.pointer and not re.match('[,\t\n ]', self.pointer):
             term += self.pointer
             self._inc()
-            if self.pointer == '\n':
-                break
         return term
 
     def _peek_next(self) -> str:
         """Peek one term.
 
-        Peek ahead one term to infer lexical analysis.
+        Peek ahead one term to infer lexical sequence.
         """
         term: str = ''
         self._skip_whitespace_and_comments()
         index: int = self._pointer
         size: int = len(self._source)
-        while index < size and not re.match('[,\r\n\t ]', self._source[index]):
+        while index < size and not re.match('[,\t\r\n ]', self._source[index]):
             term += self._source[index]
             index += 1
 
@@ -173,7 +175,6 @@ class Lexer:
     def _skip_to_next_line(self) -> None:
         """ Skips until sequences of EOL. """
         skip = True
-        is_newline = False
         while skip:
             if not self.pointer:
                 skip = False
@@ -181,15 +182,18 @@ class Lexer:
             self._inc()
             if self.pointer == '\n' \
                     or self.pointer == '\r':
-                is_newline = True
-            if is_newline:
-                if self.pointer != '\n' \
-                        and self.pointer != '\r':
-                    skip = False
+                skip = False
 
-    def _eol_token(self, term): -> Optional[TokenEnum]:
-        """ Tokenize EOL sequences."""
-        if term[:1] == '\r' or term[:1] == '\n':
+    def _eol_token(self, term: str) -> Optional[TokenEnum]:
+        """Tokenize EOL sequences. """
+        if term[:2] == '\r\n':
+            self._inc()
+            self._inc()
+            self._set_token(Token.T_EOL, '\r\n')
+            return Token.T_EOL
+        elif term[0] == '\n':
+            self._inc()
+            self._set_token(Token.T_EOL, '\n')
             return Token.T_EOL
         return None
 
@@ -219,7 +223,7 @@ class Lexer:
         """
         peek_back = self._pointer - (len(term) + 1)
         previous_line = self._source[peek_back]
-        if previous_line == "\n" or peek_back <= 0:
+        if previous_line == '\n' or peek_back <= 0:
             if f'T_{self._peek_next()}' in Mnemonic.__members__ or \
                     term[-1:] == ':':
                 self._set_token(Token.T_LABEL, term)

@@ -15,8 +15,8 @@
 import pytest
 import pathlib
 from collections import deque
-from axel.tokens import Lexeme as Token, Mnemonic, Register
-from axel.parser import Parser
+from axel.tokens import Token as Token, Mnemonic, Register
+from axel.parser import Parser, AssemblerParserError
 
 @pytest.fixture
 def parser() -> Parser:
@@ -40,12 +40,23 @@ symbols = deque([
     'SAME'
 ])
 
+def test_assembly_parser_error(parser) -> None:
+    # unknown token
+    test = parser('FAIL\nADD B #$10\n')
+    with pytest.raises(AssemblerParserError):
+        test.take(Mnemonic.T_ADD)
+    # unexpected token
+    test = parser('ADD B #$10\n')
+    with pytest.raises(AssemblerParserError):
+        test.take(Token.T_VARIABLE)
+
 def test_assembly_parser(parser) -> None:
     with open(f'{pathlib.Path(__file__).parent.parent}/etc/fixture.asm') as f:
         test = parser(f.read())
         assert test.line() == True  # fills symbol table
         assert test.line() == True  # fills symbol table
         assert test.line() == True  # fills symbol table
+        # note: skips empty lines
         line = test.line()
         # test instruction parsing
         while line is not False:

@@ -13,8 +13,9 @@
     along with axel.  If not, see <https://www.gnu.org/licenses/>.
 """
 import pytest
+from os import linesep
 from typing import List
-from axel.tokens import Lexeme as Token, Mnemonic, Register
+from axel.tokens import Token as Token, Mnemonic, Register
 from axel.lexer import Lexer
 
 
@@ -27,13 +28,11 @@ def lexer() -> Lexer:
 
 @pytest.fixture
 def whitespace() -> List[str]:
-    return ['''
-        SAME	LDA B DIGADD+1	; FIX DISPLAY ADDRESS
+    return ['''  SAME	LDA B DIGADD+1	; FIX DISPLAY ADDRESS
             ADD B #$10
         ''',
         '      LDA B DIGADD+1',
-        '''    ; This is a comment
-        ADD B #$10
+        '''; This is a comment\nADD B #$10
         ''',
         '''LDA B DIGADD+1 ; This is a comment \nADD B #$10''']
 
@@ -47,6 +46,7 @@ def test_skip_whitespace_comments(lexer, whitespace):
     assert test.pointer == 'L'
     test = lexer(whitespace[2])
     test._skip_whitespace_and_comments()
+    test._pointer += len(linesep) # halt at newline
     assert test.pointer == 'A'
 
 
@@ -111,6 +111,7 @@ def test_set_token(lexer):
 def test_skip_to_next_line(lexer, whitespace):
     test = lexer(whitespace[3])
     test._skip_to_next_line()
+    test._pointer += len(linesep) # halt at newline
     assert test.pointer == 'A'
 
 

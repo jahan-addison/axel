@@ -32,27 +32,32 @@ def code() -> List[str]:
         '''OUTCH = $FE3A
            START JSR REDIS	;SET UP FIRST DISPLAY ADDRESS
         ''',
-        '''START
-           JSR REDIS	;SET UP FIRST DISPLAY ADDRESS''',
-        'ADD B #$10']
+        '''START JSR REDIS	;SET UP FIRST DISPLAY ADDRESS''',
+        '\n\nADD B #$10\n']
 
 def test_take(parser, code):
     test = parser(code[0])
-    test.take(Tokens.Lexeme.T_LABEL)
+    test.take(Tokens.Token.T_LABEL)
     with pytest.raises(AssemblerParserError):
         test.take(Tokens.Mnemonic.T_ABA)
     test.take(Tokens.Mnemonic.T_LDA)
     with pytest.raises(AssemblerParserError):
-        test.take([Tokens.Lexeme.T_EXT_ADDR_UINT16, Tokens.Lexeme.T_IMM_UINT8])
+        test.take([Tokens.Token.T_EXT_ADDR_UINT16, Tokens.Token.T_IMM_UINT8])
     test.take([Tokens.Register.T_A, Tokens.Register.T_B])
-    test.take([Tokens.Lexeme.T_DISP_ADDR_INT8, Tokens.Lexeme.T_EXT_ADDR_UINT16])
+    test.take([Tokens.Token.T_DISP_ADDR_INT8, Tokens.Token.T_EXT_ADDR_UINT16])
+
+def test_error(parser, code):
+    test = parser(code[0])
+    expected = 'Parser failed near "SAME LDA B D", expected one of T_LABEL, but found "T_EOL"'
+    with pytest.raises(AssemblerParserError, match=expected) as error:
+        test.error('T_LABEL', Tokens.Token.T_EOL)
 
 def test_line(parser, code):
     test = parser(code[3])
     instruction, operands = test.line()
     assert instruction == Tokens.Mnemonic.T_ADD
     assert operands.pop()['token'] == Tokens.Register.T_B
-    assert operands.pop()['token'] == Tokens.Lexeme.T_IMM_UINT8
+    assert operands.pop()['token'] == Tokens.Token.T_IMM_UINT8
     assert len(operands) == 0
 
 
@@ -74,7 +79,7 @@ def test_label(parser, code):
     assert entry[0].num == 0
     assert entry[1] == 'label'
     assert entry[2].num == 0
-    assert test.lexer._pointer == 17
+    assert test.lexer._pointer == 6
 
 def test_operands(parser, code):
     test = parser(code[0])
@@ -82,4 +87,4 @@ def test_operands(parser, code):
     operands = test.operands()
     displacement, register = operands
     assert register['token'] == Tokens.Register.T_B
-    assert displacement['token'] == Tokens.Lexeme.T_DISP_ADDR_INT8
+    assert displacement['token'] == Tokens.Token.T_DISP_ADDR_INT8

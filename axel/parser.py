@@ -18,7 +18,7 @@ from typing import Union, List, overload, Deque, Tuple
 from axel.lexer import Lexer, Yylex
 from axel.symbol import Symbol_Table, U_Int16
 
-token_t = Union[Tokens.Lexeme, Tokens.Mnemonic, Tokens.Register]
+token_t = Union[Tokens.Token, Tokens.Mnemonic, Tokens.Register]
 
 
 class AssemblerParserError(Exception):
@@ -31,13 +31,12 @@ class Parser:
         self.lexer: Lexer = Lexer(source)
         self.symbols: Symbol_Table = Symbol_Table()
 
-    def _error(self,
-               source: str,
-               expected: str,
-               found: Tokens.TokenEnum) -> None:
+    def error(self, expected: str, found: Tokens.TokenEnum) -> None:
+        location = self.lexer.last_addr
+        source = self.lexer._source[location:location + 12].replace('\n', ' ')
         raise AssemblerParserError(
             f'Parser failed near "{source}", '
-            f'expected one of "{expected}", '
+            f'expected one of {expected}, '
             f'but found "{found.name}"')
 
     def parse_immediate_value(self, value: str) -> bytes:
@@ -56,53 +55,58 @@ class Parser:
     def take(self, test: Union[token_t, List[token_t]]) -> None:
         lexer = self.lexer
         next_token = next(lexer)
-        location = lexer.last_addr
-        error = lexer._source[location:location + 12].replace('\n', ' ')
         if isinstance(test, list):
             if next_token not in test:
                 options = list(map(lambda x: x.name, test))
                 lexer.retract()
-                self._error(error, ','.join(options), next_token)
+                self.error(','.join(options), next_token)
         else:
             if next_token is not test:
                 lexer.retract()
-                self._error(error, test.name, next_token)
+                self.error(test.name, next_token)
 
     def line(self) -> Union[
             Tuple[Tokens.TokenEnum, Deque[Yylex]],
             bool]:
         lexer = self.lexer
-        location = lexer.last_addr
         test = [
-            Tokens.Lexeme.T_LABEL.name,
-            Tokens.Lexeme.T_VARIABLE.name,
-            Tokens.Lexeme.T_MNEMONIC.name]
-        source = lexer._source[location:location + 12].replace('\n', ' ')
+            Tokens.Token.T_LABEL.name,
+            Tokens.Token.T_VARIABLE.name,
+            Tokens.Token.T_MNEMONIC.name]
         try:
             next(lexer)
-            current = lexer.last_token
-            if current == Tokens.Lexeme.T_LABEL:
+            current = lexer.yylex['token']
+            while current == Tokens.Token.T_EOL:
+                # skip empty line sequences
+                next(lexer)
+                current = lexer.yylex['token']
+            if current == Tokens.Token.T_LABEL:
                 self.label(lexer.yylex)
                 self.take(list(Tokens.Mnemonic))
-                return self.instruction(lexer.yylex)
-            elif current == Tokens.Lexeme.T_VARIABLE:
+                line = self.instruction(lexer.yylex)
+                self.take(Tokens.Token.T_EOL)
+                return line
+            elif current == Tokens.Token.T_VARIABLE:
                 self.variable(lexer.yylex)
+                self.take(Tokens.Token.T_EOL)
                 return True
             elif isinstance(current, Tokens.Mnemonic):
-                return self.instruction(lexer.yylex)
+                line = self.instruction(lexer.yylex)
+                self.take(Tokens.Token.T_EOL)
+                return line
         except StopIteration:
             return False  # Done.
 
         # Should never get here.
-        self._error(source, ', '.join(test), lexer.last_token)
+        self.error(', '.join(test), lexer.yylex['token'])
         return False
 
     def variable(self, label: Yylex) -> None:
         name = label['data']
         addr = self.lexer.last_addr
-        self.take(Tokens.Lexeme.T_EQUAL)
-        self.take([Tokens.Lexeme.T_DIR_ADDR_UINT8,
-                   Tokens.Lexeme.T_EXT_ADDR_UINT16])
+        self.take(Tokens.Token.T_EQUAL)
+        self.take([Tokens.Token.T_DIR_ADDR_UINT8,
+                   Tokens.Token.T_EXT_ADDR_UINT16])
         if isinstance(name, str) and self.lexer.yylex['data'] is not None:
             self.symbols.set(
                 name,
@@ -125,17 +129,17 @@ class Parser:
     def operands(self) -> Deque[Yylex]:
         stack: Deque[Yylex] = deque()
         datatypes = [
-            Tokens.Lexeme.T_IMM_UINT8,
-            Tokens.Lexeme.T_IMM_UINT16,
-            Tokens.Lexeme.T_DIR_ADDR_UINT8,
-            Tokens.Lexeme.T_EXT_ADDR_UINT16,
-            Tokens.Lexeme.T_DISP_ADDR_INT8,
+            Tokens.Token.T_IMM_UINT8,
+            Tokens.Token.T_IMM_UINT16,
+            Tokens.Token.T_DIR_ADDR_UINT8,
+            Tokens.Token.T_EXT_ADDR_UINT16,
+            Tokens.Token.T_DISP_ADDR_INT8,
         ]
         while True:
             try:
                 self.take([
                     *list(Tokens.Register),
-                    Tokens.Lexeme.T_COMMA,
+                    Tokens.Token.T_COMMA,
                     *datatypes])
                 stack.appendleft(self.lexer.yylex)
             except AssemblerParserError:
