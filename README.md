@@ -1,11 +1,11 @@
 # Axel
-## Motorola 6800 assembler 💻
+## Motorola 6800 assembler
 
 <img src="https://upload.wikimedia.org/wikipedia/commons/5/5a/Motorola_MC6800_microprocessor.jpg" width="780" />
 
-### Details
+## Details
 
-#### Program:
+### Program:
 
 * LL(1) of the 6800 assembly language
 * Multipass assembler:
@@ -13,7 +13,7 @@
     * Opcode byte translation pass
 * Fully tested with robust test suite and coverage
 
-#### Device:
+### Device:
 
   * Program, data and stack memories occupy the same memory space. The total big-endian addressable memory size is 64 KB
 
