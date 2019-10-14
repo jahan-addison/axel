@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "Axel"
+name = "axel"
 version = "0.1.0"
 description = "Motorola 6800 assembler"
 authors = ["Jahan Addison <info@jahanaddison.com>"]
 license = "GPL-3.0"
-repository = "https://github.com/jahan-addison/Axel"
+repository = "https://github.com/jahan-addison/axel"
 keywords = ["assembler", "assembly", "6800", "motorola", "python3"]
 classifiers = [
     "Development Status :: 0 - Alpha",

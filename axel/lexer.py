@@ -1,16 +1,16 @@
 """
-    Axel is free software: you can redistribute it and/or modify
+    axel is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    Axel is distributed in the hope that it will be useful,
+    axel is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Axel.  If not, see <https://www.gnu.org/licenses/>.
+    along with axel.  If not, see <https://www.gnu.org/licenses/>.
 """
 import re
 from axel.tokens import TokenEnum, Lexeme as Token, Register, Mnemonic
@@ -74,6 +74,8 @@ class Lexer:
 
         self._reset()
 
+        token = token or self._eol_token(term)
+
         token = token or self._mnemonic_token(term)
 
         token = token or self._comma_token(term)
@@ -118,9 +120,11 @@ class Lexer:
         """
         term: str = ''
         self._skip_whitespace_and_comments()
-        while self.pointer and not re.match('[,\r\n\t ]', self.pointer):
+        while self.pointer and not re.match('[,\t ]', self.pointer):
             term += self.pointer
             self._inc()
+            if self.pointer == '\n':
+                break
         return term
 
     def _peek_next(self) -> str:
@@ -159,7 +163,7 @@ class Lexer:
         Skips all whitespace and comments recursively until the beginning
         of the next term.
         """
-        if re.match('[\r\n\t ]', self.pointer):
+        if re.match('[\t ]', self.pointer):
             self._inc()
             self._skip_whitespace_and_comments()
         if self.pointer == ';':
@@ -182,6 +186,12 @@ class Lexer:
                 if self.pointer != '\n' \
                         and self.pointer != '\r':
                     skip = False
+
+    def _eol_token(self, term): -> Optional[TokenEnum]:
+        """ Tokenize EOL sequences."""
+        if term[:1] == '\r' or term[:1] == '\n':
+            return Token.T_EOL
+        return None
 
     def _variable_token(self, term: str) -> Optional[TokenEnum]:
         """Tokenize variables. (i.e. *addressable* operands) """
