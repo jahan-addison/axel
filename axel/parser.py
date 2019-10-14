@@ -30,7 +30,7 @@ class Parser:
     def _error(self,
                source: str,
                expected: str,
-               found: token_t) -> None:
+               found: Tokens.TokenEnum) -> None:
         raise SyntaxError(
             f'Parser failed near "{source}", '
             f'expected one of "{expected}" '
