@@ -81,7 +81,7 @@ class Parser:
             elif isinstance(current, Tokens.Mnemonic):
                 return self.instruction(lexer.yylex)
         except StopIteration:
-            return False #  Done.
+            return False  # Done.
         return False
 
     def variable(self, label: Yylex) -> None:
