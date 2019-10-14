@@ -17,6 +17,10 @@ from axel.parser import Parser
 with open('./etc/healthkit.asm') as f:
     test = Parser(f.read())
     line = test.line()
+    print('Instructions:\n')
     while line:
-        print(line)
+        if not isinstance(line, bool):
+            print(line)
         line = test.line()
+    print('\nSymbols:\n',
+          test.symbols.table)
