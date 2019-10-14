@@ -21,6 +21,10 @@ from axel.symbol import Symbol_Table, U_Int16
 token_t = Union[Tokens.Lexeme, Tokens.Mnemonic, Tokens.Register]
 
 
+class AssemblerParserError(Exception):
+    pass
+
+
 class Parser:
     def __init__(self, source: str) -> None:
         self.addressing_mode: Tokens.AddressingMode
@@ -31,7 +35,7 @@ class Parser:
                source: str,
                expected: str,
                found: Tokens.TokenEnum) -> None:
-        raise SyntaxError(
+        raise AssemblerParserError(
             f'Parser failed near "{source}", '
             f'expected one of "{expected}", '
             f'but found "{found.name}"')
@@ -52,8 +56,8 @@ class Parser:
     def take(self, test: Union[token_t, List[token_t]]) -> None:
         lexer = self.lexer
         next_token = next(lexer)
-        location = 0 if lexer._pointer - 5 < 0 else lexer._pointer - 5
-        error = lexer._source[location:12]
+        location = lexer.last_addr
+        error = lexer._source[location:location + 12].replace('\n', ' ')
         if isinstance(test, list):
             if next_token not in test:
                 options = list(map(lambda x: x.name, test))
@@ -68,6 +72,12 @@ class Parser:
             Tuple[Tokens.TokenEnum, Deque[Yylex]],
             bool]:
         lexer = self.lexer
+        location = lexer.last_addr
+        test = [
+            Tokens.Lexeme.T_LABEL.name,
+            Tokens.Lexeme.T_VARIABLE.name,
+            Tokens.Lexeme.T_MNEMONIC.name]
+        source = lexer._source[location:location + 12].replace('\n', ' ')
         try:
             next(lexer)
             current = lexer.last_token
@@ -82,6 +92,9 @@ class Parser:
                 return self.instruction(lexer.yylex)
         except StopIteration:
             return False  # Done.
+
+        # Should never get here.
+        self._error(source, ', '.join(test), lexer.last_token)
         return False
 
     def variable(self, label: Yylex) -> None:
@@ -97,7 +110,8 @@ class Parser:
                 'variable',
                 self.parse_immediate_value(self.lexer.yylex['data']))
         else:
-            raise SyntaxError(f'Parser failed to parse variable "{name}"')
+            raise AssemblerParserError(
+                f'Parser failed on variable "{name}"')
 
     def label(self, label: Yylex) -> None:
         name = label['data']
@@ -105,7 +119,8 @@ class Parser:
         if isinstance(name, str):
             self.symbols.set(name, U_Int16(addr), 'label', U_Int16(addr))
         else:
-            raise SyntaxError(f'Parser failed to parse label "{name}"')
+            raise AssemblerParserError(
+                f'Parser failed on label "{name}"')
 
     def operands(self) -> Deque[Yylex]:
         stack: Deque[Yylex] = deque()
@@ -123,7 +138,7 @@ class Parser:
                     Tokens.Lexeme.T_COMMA,
                     *datatypes])
                 stack.appendleft(self.lexer.yylex)
-            except SyntaxError:
+            except AssemblerParserError:
                 self.lexer.retract()
                 break
             except StopIteration:

@@ -42,6 +42,7 @@ class Lexeme(TokenEnum):
     T_LABEL = auto()
     T_EQUAL = auto()
     T_COMMA = auto()
+    T_MNEMONIC = auto()
     T_REGISTER = auto()
     T_UNKNOWN = auto()
     T_IMM_UINT8 = auto()
