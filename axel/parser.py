@@ -59,7 +59,7 @@ class Parser:
             if next_token not in test:
                 options = list(map(lambda x: x.name, test))
                 lexer.retract()
-                self.error(','.join(options), next_token)
+                self.error(', '.join(options), next_token)
         else:
             if next_token is not test:
                 lexer.retract()
