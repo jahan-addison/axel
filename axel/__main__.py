@@ -22,7 +22,7 @@ with open('./etc/healthkit.asm') as f:
     #     print(f'"{token}"')
     test = Parser(f.read())
     line = test.line()
-    print('Instructions:\n')
+    print('\nInstructions:')
     while line:
         if not isinstance(line, bool):
             print(line)

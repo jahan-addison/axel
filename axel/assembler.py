@@ -15,11 +15,26 @@
 from io import BytesIO
 from collections import deque
 from typing import Deque, Union
-from axel.symbol import U_Int16
+from axel.symbol import U_Int16, U_Int8, Symbol_Table
+from axel.parser import Parser
+from bitarray import bitarray
 
 program: BytesIO = BytesIO()
-
-stack_segment: U_Int16 = U_Int16(0)
 program_stack: Deque[Union[int, str]] = deque()
 
-program_counter: U_Int16 = U_Int16(0)
+
+class Registers:
+    AccA: U_Int8 = U_Int8(0)
+    AccB: U_Int8 = U_Int8(0)
+    X: U_Int16 = U_Int16(0)
+    SP: U_Int16 = U_Int16(0)
+    PC: U_Int16 = U_Int16(0)
+    SR: bitarray = bitarray([False] * 6)
+
+
+def construct_symbol_table(source: str) -> Symbol_Table:
+    parse = Parser(source)
+    line = parse.line()
+    while line:
+        line = parse.line()
+    return parse.symbols

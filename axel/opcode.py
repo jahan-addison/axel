@@ -12,5 +12,10 @@
     You should have received a copy of the GNU General Public License
     along with axel.  If not, see <https://www.gnu.org/licenses/>.
 """
-# https://docs.python.org/3/library/array.html
-# https://docs.python.org/3/library/struct.html
+from typing import Deque
+from axel.tokens import AddressingMode
+from axel.lexer import Yylex
+
+
+def get_addressing_mode(operands: Deque[Yylex]) -> AddressingMode:
+    pass
