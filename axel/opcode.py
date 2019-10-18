@@ -39,6 +39,7 @@ first_operand = [
     Register.T_B
 ]
 
+
 def get_addressing_mode(
         parser: Parser,
         operands: Deque[Yylex],
