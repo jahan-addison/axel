@@ -14,7 +14,7 @@
 """
 import re
 from axel.tokens import TokenEnum, Token as Token, Register, Mnemonic
-from axel.tokens import branch_jump_mnemonics
+from axel.tokens import Branch_Mnemonics
 from axel.symbol import Symbol_Table, U_Int16
 from collections import deque
 from typing import Optional, TypeVar, Deque, Tuple
@@ -312,7 +312,7 @@ class Lexer:
 
     def _displacement_token(self, term: str) -> Optional[TokenEnum]:
         """Tokenize displacement (i.e. branching) 1 byte memory addresses. """
-        if self._last in branch_jump_mnemonics:
+        if self._last in Branch_Mnemonics:
             if f'T_{term[3:]}' not in Register.__members__ and \
                     self._peek_next() != '=':
                 self._set_token(Token.T_DISP_ADDR_INT8, term)

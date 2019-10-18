@@ -160,7 +160,7 @@ class Mnemonic(TokenEnum):
     T_WAI = auto()
 
 
-branch_jump_mnemonics = set([
+Branch_Mnemonics = set([
     Mnemonic.T_BCC,
     Mnemonic.T_BCS,
     Mnemonic.T_BEQ,
