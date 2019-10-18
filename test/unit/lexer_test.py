@@ -15,7 +15,8 @@
 import pytest
 from os import linesep
 from typing import List
-from axel.tokens import Token as Token, Mnemonic, Register
+from axel.symbol import U_Int16
+from axel.tokens import Token as Token,  Mnemonic, Register
 from axel.lexer import Lexer
 
 
@@ -28,13 +29,13 @@ def lexer() -> Lexer:
 
 @pytest.fixture
 def whitespace() -> List[str]:
-    return ['''  SAME	LDA B DIGADD+1	; FIX DISPLAY ADDRESS
+    return ['''  SAME	LDA B DIGADD	; FIX DISPLAY ADDRESS
             ADD B #$10
         ''',
-        '      LDA B DIGADD+1',
+        '      LDA B DIGADD',
         '''; This is a comment\nADD B #$10
         ''',
-        '''LDA B DIGADD+1 ; This is a comment \nADD B #$10''']
+        '''LDA B DIGADD ; This is a comment \nADD B #$10''']
 
 
 def test_skip_whitespace_comments(lexer, whitespace):
@@ -60,6 +61,11 @@ def test_read_term(lexer):
     assert term2 == 'B'
     assert term3 == '#$10'
 
+def test_get_token(lexer):
+    test = lexer('ADD B #$10')
+    assert test._get_token("ADD") == Mnemonic.T_ADD
+    assert test._get_token("B") == Register.T_B
+    assert test._get_token('#$10') == Token.T_IMM_UINT8
 
 def test_retract(lexer):
     test = lexer('ADD B ##10')

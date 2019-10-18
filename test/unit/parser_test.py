@@ -15,24 +15,36 @@
 import pytest
 from typing import List
 import axel.tokens as Tokens  # Token, Mnemonic, Register
+from axel.lexer import Lexer
+from axel.symbol import Symbol_Table
 from axel.parser import Parser, AssemblerParserError
 
 @pytest.fixture
 def parser() -> Parser:
-    def _get_parser(source):
-        return Parser(source)
+    def _get_parser(source, symbols = Symbol_Table()):
+        return Parser(source, symbols)
 
     return _get_parser
 
 @pytest.fixture
+def symbol_table() -> Symbol_Table:
+    def _get_symbols(source):
+        scanner = Lexer(source)
+        for token in scanner:
+            pass
+        return scanner.symbols
+
+    return _get_symbols
+
+@pytest.fixture
 def code() -> List[str]:
-    return ['''SAME LDA B DIGADD+1	; FIX DISPLAY ADDRESS
+    return ['''SAME LDA B #$F0	; FIX DISPLAY ADDRESS
             ADD B #$10
         ''',
         '''OUTCH = $FE3A
-           START JSR REDIS	;SET UP FIRST DISPLAY ADDRESS
+           START JSR $FCBC	;SET UP FIRST DISPLAY ADDRESS
         ''',
-        '''START JSR REDIS	;SET UP FIRST DISPLAY ADDRESS''',
+        '''START JSR $FCBC	;SET UP FIRST DISPLAY ADDRESS''',
         '\n\nADD B #$10\n']
 
 def test_take(parser, code):
@@ -44,11 +56,11 @@ def test_take(parser, code):
     with pytest.raises(AssemblerParserError):
         test.take([Tokens.Token.T_EXT_ADDR_UINT16, Tokens.Token.T_IMM_UINT8])
     test.take([Tokens.Register.T_A, Tokens.Register.T_B])
-    test.take([Tokens.Token.T_DISP_ADDR_INT8, Tokens.Token.T_EXT_ADDR_UINT16])
+    test.take([Tokens.Token.T_IMM_UINT8])
 
 def test_error(parser, code):
     test = parser(code[0])
-    expected = 'Parser failed near "SAME LDA B D", expected one of T_LABEL, but found "T_EOL"'
+    expected = 'Parser failed near "SAME LDA B #", expected one of T_LABEL, but found "T_EOL"'
     with pytest.raises(AssemblerParserError, match=expected) as error:
         test.error('T_LABEL', Tokens.Token.T_EOL)
 
@@ -61,8 +73,8 @@ def test_line(parser, code):
     assert len(operands) == 0
 
 
-def test_variable(parser, code):
-    test = parser(code[1])
+def test_variable(parser, code, symbol_table):
+    test = parser(code[1], symbol_table(code[1]))
     next(test.lexer) # eat token
     test.variable(test.lexer.yylex)
     entry = test.symbols.table['OUTCH']
@@ -71,20 +83,10 @@ def test_variable(parser, code):
     assert entry[2] == b'\xfe:'
     assert test.lexer._pointer == 13
 
-def test_label(parser, code):
-    test = parser(code[2])
-    next(test.lexer) # eat token
-    test.label(test.lexer.yylex)
-    entry = test.symbols.table['START']
-    assert entry[0].num == 0
-    assert entry[1] == 'label'
-    assert entry[2].num == 0
-    assert test.lexer._pointer == 6
-
 def test_operands(parser, code):
     test = parser(code[0])
     test.lexer._pointer = 9
     operands = test.operands()
-    displacement, register = operands
+    immediate, register = operands
     assert register['token'] == Tokens.Register.T_B
-    assert displacement['token'] == Tokens.Token.T_DISP_ADDR_INT8
+    assert immediate['token'] == Tokens.Token.T_IMM_UINT8

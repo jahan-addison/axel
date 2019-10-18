@@ -158,3 +158,23 @@ class Mnemonic(TokenEnum):
     T_TSX = auto()
     T_TXS = auto()
     T_WAI = auto()
+
+
+branch_jump_mnemonics = set([
+    Mnemonic.T_BCC,
+    Mnemonic.T_BCS,
+    Mnemonic.T_BEQ,
+    Mnemonic.T_BGE,
+    Mnemonic.T_BGT,
+    Mnemonic.T_BHI,
+    Mnemonic.T_BLE,
+    Mnemonic.T_BLS,
+    Mnemonic.T_BLT,
+    Mnemonic.T_BMI,
+    Mnemonic.T_BNE,
+    Mnemonic.T_BPL,
+    Mnemonic.T_BRA,
+    Mnemonic.T_BSR,
+    Mnemonic.T_BVC,
+    Mnemonic.T_BVS
+])

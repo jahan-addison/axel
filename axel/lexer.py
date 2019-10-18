@@ -14,7 +14,10 @@
 """
 import re
 from axel.tokens import TokenEnum, Token as Token, Register, Mnemonic
-from typing import Optional, TypeVar
+from axel.tokens import branch_jump_mnemonics
+from axel.symbol import Symbol_Table, U_Int16
+from collections import deque
+from typing import Optional, TypeVar, Deque, Tuple
 from mypy_extensions import TypedDict
 
 M = TypeVar('M', bound='Lexer')
@@ -29,8 +32,9 @@ class Lexer:
     """Lexer Iterator for the 6800 assembly language.
 
     LL(1) tokenization and scanner of a source string into a stream,
-    sets last token and scanner data during each __next__ call.
+    sets last token and yytext data during each __next__ call.
 
+    The lexer uses a stack to construct the symbol table during the scan.
     """
     def __init__(self, source: str) -> None:
         self._source: str = source
@@ -40,6 +44,8 @@ class Lexer:
             'data': None
         }
         self._at = self._pointer
+        self._symbol_table: Symbol_Table = Symbol_Table()
+        self._symbol_stack: Deque[Tuple[str, str]] = deque()
         self._last: TokenEnum = Token.T_UNKNOWN
 
     @property
@@ -49,6 +55,11 @@ class Lexer:
             return self._source[self._pointer]
         except IndexError:
             return ''
+
+    @property
+    def symbols(self) -> Symbol_Table:
+        """The symbol table. """
+        return self._symbol_table
 
     @property
     def last_token(self) -> TokenEnum:
@@ -73,14 +84,32 @@ class Lexer:
             raise StopIteration('Lexer Iterator out of bounds')
 
         self._reset()
+        token = self._get_token(term)
+
+        if token == Token.T_UNKNOWN:
+            # Is this a symbol in our symbol table? translate.
+            if term in self._symbol_table.table:
+                symbol = self._symbol_table.get(term)
+                if symbol is not None:
+                    if symbol[1] == 'variable' and isinstance(symbol[2], str):
+                        token = self._get_token(symbol[2])
+
+        return token
+
+    def _get_token(self, term: str) -> TokenEnum:
+        """Tokenization of a term into a lexeme.
+
+        If no translation is found, defaults to T_UNKNOWN.
+        """
+        token: Optional[TokenEnum] = None
 
         token = token or self._eol_token(term)
+
+        token = token or self._register_token(term)
 
         token = token or self._mnemonic_token(term)
 
         token = token or self._comma_token(term)
-
-        token = token or self._register_token(term)
 
         token = token or self._equal_token(term)
 
@@ -200,6 +229,7 @@ class Lexer:
     def _variable_token(self, term: str) -> Optional[TokenEnum]:
         """Tokenize variables. (i.e. *addressable* operands) """
         if self._peek_next() == '=':
+            self._symbol_stack.append(('variable', term))
             self._set_token(Token.T_VARIABLE, term)
             return Token.T_VARIABLE
         return None
@@ -226,6 +256,7 @@ class Lexer:
         if previous_line == '\n' or peek_back <= 0:
             if f'T_{self._peek_next()}' in Mnemonic.__members__ or \
                     term[-1:] == ':':
+                self._symbol_stack.append(('label', term))
                 self._set_token(Token.T_LABEL, term)
                 return Token.T_LABEL
         return None
@@ -234,8 +265,21 @@ class Lexer:
         """Equal assignment.
 
         Tokenize equal assignments between variables and
-        addressable operands."""
+        addressable operands.
+
+        Pops off the name for this variable and assigns in the symbol table.
+        """
         if term == '=':
+            # pop off from symbol stack and set in table
+            if len(self._symbol_stack) and \
+                    self._symbol_stack[-1][0] == 'variable':
+                assign = self._symbol_stack.pop()
+                self._symbol_table.set(
+                    assign[1],
+                    U_Int16(self.last_addr - len(assign[1]) - 1),
+                    'variable',
+                    self._peek_next())
+
             self._set_token(Token.T_EQUAL, term)
             return Token.T_EQUAL
         return None
@@ -266,7 +310,7 @@ class Lexer:
 
     def _displacement_token(self, term: str) -> Optional[TokenEnum]:
         """Tokenize displacement (i.e. branching) 1 byte memory addresses. """
-        if self._last in Mnemonic or self._last in Register:
+        if self._last in branch_jump_mnemonics:
             if f'T_{term[3:]}' not in Register.__members__ and \
                     self._peek_next() != '=':
                 self._set_token(Token.T_DISP_ADDR_INT8, term)
@@ -279,6 +323,10 @@ class Lexer:
         Tokenize Mnemonics in the 6800 ISA. Note that some mnemonics
         like the `LDA' may contiguously use its register operand `LDAA'
         in immediate addressing mode.
+
+        In addition, sets the symbol table for this label and
+        it's addressable location.
+
         Examples:
             LDAA #$01
             TAB
@@ -287,6 +335,14 @@ class Lexer:
         if len(term) == 3 and \
                 f'T_{term[:3]}' in Mnemonic.__members__:
             self._set_token(Mnemonic[f'T_{term[:3]}'], term[:3])
+            if len(self._symbol_stack) and \
+                    self._symbol_stack[-1][0] == 'label':
+                assign = self._symbol_stack.pop()
+                self._symbol_table.set(
+                    assign[1],
+                    U_Int16(self.last_addr - len(assign[1]) - 1),
+                    'label',
+                    U_Int16(self.last_addr - len(assign[1]) - 1))
             return Mnemonic[f'T_{term[:3]}']
 
         if len(term) == 4 and \
@@ -294,6 +350,15 @@ class Lexer:
                 f'T_{term[3:]}' in Register.__members__:
             self._dec()
             self._set_token(Mnemonic[f'T_{term[:3]}'], term[:3])
+            if len(self._symbol_stack) and \
+                    self._symbol_stack[-1][0] == 'label':
+                assign = self._symbol_stack.pop()
+                self._symbol_table.set(
+                    assign[1],
+                    U_Int16(self.last_addr - len(assign[1]) - 1),
+                    'label',
+                    U_Int16(self.last_addr - len(assign[1]) - 1))
+
             return Mnemonic[f'T_{term[:3]}']
         return None
 
@@ -309,8 +374,7 @@ class Lexer:
                 self._set_token(Register.T_X, 'X')
                 return Register.T_X
         except IndexError:
-            return None
-
+            pass
         if f'T_{term}' in Register.__members__:
             self._set_token(Register[f'T_{term}'], term)
             return Register[f'T_{term}']

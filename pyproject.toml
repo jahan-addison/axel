@@ -15,10 +15,9 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-pampy = "^0.2.1"
 mypy_extensions = "^0.4.1"
 bitarray = "^1.0"
-
+pampy = {git = "https://github.com/santinic/pampy"}
 [tool.poetry.dev-dependencies]
 mypy = "^0.720.0"
 flake8 = "^3.7"

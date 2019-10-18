@@ -15,47 +15,45 @@
 import pytest
 import pathlib
 from collections import deque
+from axel.symbol import Symbol_Table
 from axel.tokens import Token as Token, Mnemonic, Register
+from axel.lexer import Lexer
 from axel.parser import Parser, AssemblerParserError
 
 @pytest.fixture
-def parser() -> Parser:
-    def _get_parser(source):
-        return Parser(source)
+def symbol_table() -> Symbol_Table:
+    def _get_symbols(source):
+        scanner = Lexer(source)
+        for token in scanner:
+            pass
+        return scanner.symbols
 
-    return _get_parser
+    return _get_symbols
 
 expected = deque([
-    (Mnemonic.T_JSR, Token.T_DISP_ADDR_INT8),
+    (Mnemonic.T_JSR, Token.T_EXT_ADDR_UINT16),
     (Mnemonic.T_LDA, Register.T_A, Token.T_IMM_UINT8),
     (Mnemonic.T_BRA, Token.T_DISP_ADDR_INT8),
-    (Mnemonic.T_LDA, Register.T_B, Token.T_DISP_ADDR_INT8)
+    (Mnemonic.T_LDA, Register.T_B, Token.T_DIR_ADDR_UINT8)
 ])
 
-symbols = deque([
-    'REDIS',
-    'DIGADD',
-    'OUTCH',
-    'START',
-    'SAME'
-])
-
-def test_assembly_parser_error(parser) -> None:
+def test_assembly_parser_error(symbol_table) -> None:
     # unknown token
-    test = parser('FAIL\nADD B #$10\n')
+    test = Parser('FAIL\nADD B #$10\n', symbol_table('FAIL\nADD B #$10\n'))
     with pytest.raises(AssemblerParserError):
         test.take(Mnemonic.T_ADD)
-    # unexpected token
-    test = parser('ADD B #$10\n')
+    # unexpected
+    test = Parser('ADD B #$10\n', symbol_table('ADD B #$10\n'))
     with pytest.raises(AssemblerParserError):
         test.take(Token.T_VARIABLE)
 
-def test_assembly_parser(parser) -> None:
+def test_assembly_parser(symbol_table) -> None:
     with open(f'{pathlib.Path(__file__).parent.parent}/etc/fixture.asm') as f:
-        test = parser(f.read())
-        assert test.line() == True  # fills symbol table
-        assert test.line() == True  # fills symbol table
-        assert test.line() == True  # fills symbol table
+        source = f.read()
+        test = Parser(source, symbol_table(source))
+        assert test.line() == True  # variable
+        assert test.line() == True  # variable
+        assert test.line() == True  # variable
         # note: skips empty lines
         line = test.line()
         # test instruction parsing
@@ -70,8 +68,3 @@ def test_assembly_parser(parser) -> None:
                 index += 1
 
             line = test.line()
-
-        # test symbol table construction
-        assert len(test.symbols.table) == len(symbols)
-        while len(symbols):
-            assert symbols.pop() in test.symbols.table

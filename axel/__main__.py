@@ -12,20 +12,21 @@
     You should have received a copy of the GNU General Public License
     along with axel.  If not, see <https://www.gnu.org/licenses/>.
 """
-# from axel.lexer import Lexer
+from axel.lexer import Lexer
 from axel.parser import Parser
 
 with open('./etc/healthkit.asm') as f:
-    # Token stream:
-    # test = Lexer(f.read())
-    # for token in test:
-    #     print(f'"{token}"')
-    test = Parser(f.read())
-    line = test.line()
+    source = f.read()
+    test = Lexer(source)
+    for token in test:
+        pass
+    # print(test.symbols.table)
+    test2 = Parser(source, test.symbols)
+    line = test2.line()
     print('\nInstructions:')
     while line:
         if not isinstance(line, bool):
             print(line)
-        line = test.line()
+        line = test2.line()
     print('\nSymbols:\n',
-          test.symbols.table)
+          test2.symbols.table)

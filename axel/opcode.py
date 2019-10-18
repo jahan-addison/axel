@@ -12,10 +12,78 @@
     You should have received a copy of the GNU General Public License
     along with axel.  If not, see <https://www.gnu.org/licenses/>.
 """
-from typing import Deque
-from axel.tokens import AddressingMode
+# flake8: noqa
+import copy
+from pampy import match, _
+from typing import Deque, Tuple, Union, Optional, List
+from axel.tokens import AddressingMode, Token, Register, TokenEnum
 from axel.lexer import Yylex
+from axel.parser import Parser
 
+Mode = Union[AddressingMode, Tuple[str, str, TokenEnum]]
 
-def get_addressing_mode(operands: Deque[Yylex]) -> AddressingMode:
-    pass
+second_operand = [
+    Token.T_IMM_UINT8,
+    Token.T_IMM_UINT16,
+    Token.T_DIR_ADDR_UINT8,
+    Token.T_EXT_ADDR_UINT16,
+    Register.T_X,
+]
+
+first_operand = [
+    Token.T_IMM_UINT16,
+    Token.T_DIR_ADDR_UINT8,
+    Token.T_DISP_ADDR_INT8,
+    Token.T_EXT_ADDR_UINT16,
+    Register.T_A,
+    Register.T_B
+]
+
+def get_addressing_mode(
+        parser: Parser,
+        operands: Deque[Yylex],
+        mode_stack: List[AddressingMode]) -> Optional[AddressingMode]:
+    operands = copy.deepcopy(operands)
+    if len(operands) > 0:
+        test = operands[0]['token']
+        mode: Mode = match(len(operands),
+
+            3,  lambda k: AddressingMode.IDX if
+                    operands[0] == Register.T_X
+                    else ('error', Register.T_X.name, operands[-1]['token']),
+
+            2,  lambda k: match(test,
+                    Token.T_IMM_UINT8,         AddressingMode.IMM,
+                    Token.T_IMM_UINT16,        AddressingMode.IMM,
+                    Token.T_DIR_ADDR_UINT8,    AddressingMode.DIR,
+                    Token.T_EXT_ADDR_UINT16,   AddressingMode.EXT,
+                    Register.T_X,              AddressingMode.IDX,
+                    _,                         ('error',
+                                                ', '.join(list(map(lambda x: x.name, second_operand))),
+                                                test)
+                ),
+
+            1,  lambda k: match(test,
+                    Token.T_IMM_UINT16,       AddressingMode.IMM,
+                    Token.T_DIR_ADDR_UINT8,   AddressingMode.DIR,
+                    Token.T_DISP_ADDR_INT8,   AddressingMode.REL,
+                    Token.T_EXT_ADDR_UINT16,  AddressingMode.EXT,
+                    Register.T_A,             AddressingMode.ACC,
+                    Register.T_B,             AddressingMode.ACC,
+                    _,                        ('error',
+                                               ', '.join(list(map(lambda x: x.name,
+                                                    first_operand))),
+                                                test)
+                ),
+
+            0,  lambda k: AddressingMode.INH
+        )
+        if not isinstance(mode, AddressingMode):
+            parser.error(mode[1], mode[2])
+        else:
+            operands.popleft()
+        mode_stack.append(mode)
+        return get_addressing_mode(parser, operands, mode_stack)
+    else:
+        return mode_stack[0]
+    return mode_stack[0]
