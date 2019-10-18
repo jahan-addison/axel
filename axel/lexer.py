@@ -109,19 +109,19 @@ class Lexer:
 
         token = token or self._mnemonic_token(term)
 
+        token = token or self._displacement_token(term)
+
+        token = token or self._direct_or_extended_token(term)
+
         token = token or self._comma_token(term)
 
         token = token or self._equal_token(term)
 
         token = token or self._immediate_token(term)
 
-        token = token or self._direct_or_extended_token(term)
-
         token = token or self._equal_token(term)
 
         token = token or self._label_token(term)
-
-        token = token or self._displacement_token(term)
 
         token = token or self._variable_token(term)
 
@@ -153,6 +153,8 @@ class Lexer:
             return '\r\n'
         elif self.pointer == '\n':
             return '\n'
+        elif self.pointer == ',':
+            return ','
         while self.pointer and not re.match('[,\t\n ]', self.pointer):
             term += self.pointer
             self._inc()

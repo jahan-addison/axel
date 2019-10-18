@@ -20,7 +20,6 @@ with open('./etc/healthkit.asm') as f:
     test = Lexer(source)
     for token in test:
         pass
-    # print(test.symbols.table)
     test2 = Parser(source, test.symbols)
     line = test2.line()
     print('\nInstructions:')

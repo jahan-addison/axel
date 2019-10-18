@@ -14,7 +14,7 @@
 """
 from io import BytesIO
 from collections import deque
-from typing import Deque, Union
+from typing import Deque, Union, Optional
 from axel.symbol import U_Int16, U_Int8, Symbol_Table
 from axel.lexer import Lexer
 from axel.parser import Parser
@@ -32,6 +32,7 @@ class Registers:
 
 class Assembler:
     def __init__(self, source: str) -> None:
+        self.lexer = Optional[Lexer]
         self.symbol_table: Symbol_Table = self.construct_symbol_table(
             source
         )
@@ -40,7 +41,7 @@ class Assembler:
         self.stack: Deque[Union[int, str]] = deque()
 
     def construct_symbol_table(self, source: str) -> Symbol_Table:
-        scanner = Lexer(source)
-        for token in scanner:
+        self.lexer = Lexer(source)
+        for token in self.lexer:
             pass
-        return scanner.symbols
+        return self.lexer.symbols

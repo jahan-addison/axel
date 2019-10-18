@@ -13,7 +13,6 @@
     along with axel.  If not, see <https://www.gnu.org/licenses/>.
 """
 # flake8: noqa
-import copy
 from pampy import match, _
 from typing import Deque, Tuple, Union, Optional, List
 from axel.tokens import AddressingMode, Token, Register, TokenEnum
@@ -44,14 +43,17 @@ def get_addressing_mode(
         parser: Parser,
         operands: Deque[Yylex],
         mode_stack: List[AddressingMode]) -> Optional[AddressingMode]:
-    operands = copy.deepcopy(operands)
-    if len(operands) > 0:
+    operands = operands.copy()
+    size = len(operands)
+    if size > 0:
+        if size > 1 and operands[1]['token'] == Token.T_COMMA:
+            del operands[1]
         test = operands[0]['token']
         mode: Mode = match(len(operands),
 
             3,  lambda k: AddressingMode.IDX if
-                    operands[0] == Register.T_X
-                    else ('error', Register.T_X.name, operands[-1]['token']),
+                    operands[0]['token'] == Register.T_X
+                    else ('error', Register.T_X.name, test),
 
             2,  lambda k: match(test,
                     Token.T_IMM_UINT8,         AddressingMode.IMM,
@@ -83,8 +85,9 @@ def get_addressing_mode(
             parser.error(mode[1], mode[2])
         else:
             operands.popleft()
-        mode_stack.append(mode)
+            mode_stack.append(mode)
         return get_addressing_mode(parser, operands, mode_stack)
     else:
-        return mode_stack[0]
-    return mode_stack[0]
+        return AddressingMode.INH if len(mode_stack) == 0 else mode_stack[0]
+
+    return AddressingMode.INH if len(mode_stack) == 0 else mode_stack[0]
