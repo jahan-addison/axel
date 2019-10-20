@@ -19,17 +19,16 @@ from axel.tokens import AddressingMode, Token, Register, TokenEnum
 from axel.lexer import Yylex
 from axel.parser import Parser
 
+"""TODO: Logical operator DSL to generate assertions for mnemonics
+    Logic statements of the form:
+        [A] ← [A] + [B]
+        [A] ← [A] + data8 + C
+        [A] ← [A] + [data8 + [X]] + C
+"""
+
 Mode = Union[AddressingMode, Tuple[str, str, TokenEnum]]
 
-second_operand = [
-    Token.T_IMM_UINT8,
-    Token.T_IMM_UINT16,
-    Token.T_DIR_ADDR_UINT8,
-    Token.T_EXT_ADDR_UINT16,
-    Register.T_X,
-]
-
-first_operand = [
+first_operand_states = [
     Token.T_IMM_UINT16,
     Token.T_DIR_ADDR_UINT8,
     Token.T_DISP_ADDR_INT8,
@@ -38,13 +37,24 @@ first_operand = [
     Register.T_B
 ]
 
+second_operand_states = [
+    Token.T_IMM_UINT8,
+    Token.T_IMM_UINT16,
+    Token.T_DIR_ADDR_UINT8,
+    Token.T_EXT_ADDR_UINT16,
+    Register.T_X,
+]
 
-def get_addressing_mode(
-        parser: Parser,
-        operands: Deque[Yylex],
-        mode_stack: List[AddressingMode]) -> Optional[AddressingMode]:
+def get_addressing_mode(parser: Parser, operands: Deque[Yylex]) -> AddressingMode:
     operands = operands.copy()
-    size = len(operands)
+
+    return operands_state_machine(parser, operands, [])
+
+
+def operands_state_machine(parser: Parser,
+                           operands: Deque[Yylex],
+                           mode_stack: List[AddressingMode]) -> AddressingMode:
+    size: int = len(operands)
     if size > 0:
         if size > 1 and operands[1]['token'] == Token.T_COMMA:
             del operands[1]
@@ -62,7 +72,8 @@ def get_addressing_mode(
                     Token.T_EXT_ADDR_UINT16,   AddressingMode.EXT,
                     Register.T_X,              AddressingMode.IDX,
                     _,                         ('error',
-                                                ', '.join(list(map(lambda x: x.name, second_operand))),
+                                                ', '.join(list(map(lambda x: x.name,
+                                                                   second_operand_states))),
                                                 test)
                 ),
 
@@ -75,7 +86,7 @@ def get_addressing_mode(
                     Register.T_B,             AddressingMode.ACC,
                     _,                        ('error',
                                                ', '.join(list(map(lambda x: x.name,
-                                                    first_operand))),
+                                                    first_operand_states))),
                                                 test)
                 ),
 
@@ -86,8 +97,7 @@ def get_addressing_mode(
         else:
             operands.popleft()
             mode_stack.append(mode)
-        return get_addressing_mode(parser, operands, mode_stack)
-    else:
-        return AddressingMode.INH if len(mode_stack) == 0 else mode_stack[0]
+
+        return operands_state_machine(parser, operands, mode_stack)
 
     return AddressingMode.INH if len(mode_stack) == 0 else mode_stack[0]

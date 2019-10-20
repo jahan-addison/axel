@@ -15,7 +15,8 @@
 import re
 from axel.tokens import TokenEnum, Token as Token, Register, Mnemonic
 from axel.tokens import Branch_Mnemonics
-from axel.symbol import Symbol_Table, U_Int16
+from axel.symbol import Symbol_Table
+from ctypes import c_uint16
 from collections import deque
 from typing import Optional, TypeVar, Deque, Tuple
 from mypy_extensions import TypedDict
@@ -278,7 +279,7 @@ class Lexer:
                 assign = self._symbol_stack.pop()
                 self._symbol_table.set(
                     assign[1],
-                    U_Int16(self.last_addr - len(assign[1]) - 1),
+                    c_uint16(self.last_addr - len(assign[1]) - 1),
                     'variable',
                     self._peek_next())
 
@@ -342,9 +343,9 @@ class Lexer:
                 assign = self._symbol_stack.pop()
                 self._symbol_table.set(
                     assign[1],
-                    U_Int16(self.last_addr - len(assign[1]) - 1),
+                    c_uint16(self.last_addr - len(assign[1]) - 1),
                     'label',
-                    U_Int16(self.last_addr - len(assign[1]) - 1))
+                    c_uint16(self.last_addr - len(assign[1]) - 1))
             return Mnemonic[f'T_{term[:3]}']
 
         if len(term) == 4 and \
@@ -357,9 +358,9 @@ class Lexer:
                 assign = self._symbol_stack.pop()
                 self._symbol_table.set(
                     assign[1],
-                    U_Int16(self.last_addr - len(assign[1]) - 1),
+                    c_uint16(self.last_addr - len(assign[1]) - 1),
                     'label',
-                    U_Int16(self.last_addr - len(assign[1]) - 1))
+                    c_uint16(self.last_addr - len(assign[1]) - 1))
 
             return Mnemonic[f'T_{term[:3]}']
         return None

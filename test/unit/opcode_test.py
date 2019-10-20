@@ -17,7 +17,7 @@ from os import linesep
 from typing import List
 from axel.tokens import AddressingMode
 from axel.parser import Parser
-from axel.opcode import get_addressing_mode
+from axel.opcode import get_addressing_mode, operands_state_machine
 
 
 @pytest.fixture
@@ -38,7 +38,7 @@ def addr_codes() -> List[str]:
         ''',
         '''ADC A #$10
             ADC A $10
-            ADD A $10, X
+            ADD A $10,X
             BGE $FE
             BIT B $FCBC
             DAA
@@ -48,14 +48,30 @@ def addr_codes() -> List[str]:
 def test_get_addressing_mode(parser, addr_codes):
     parser = Parser(addr_codes[3])
     _, operands = parser.line()
-    assert get_addressing_mode(parser, operands, []) == AddressingMode.IMM
+    assert get_addressing_mode(parser, operands) == AddressingMode.IMM
     _, operands = parser.line()
-    assert get_addressing_mode(parser, operands, []) == AddressingMode.DIR
+    assert get_addressing_mode(parser, operands) == AddressingMode.DIR
     _, operands = parser.line()
-    assert get_addressing_mode(parser, operands, []) == AddressingMode.IDX
+    assert get_addressing_mode(parser, operands) == AddressingMode.IDX
     _, operands = parser.line()
-    assert get_addressing_mode(parser, operands, []) == AddressingMode.REL
+    assert get_addressing_mode(parser, operands) == AddressingMode.REL
     _, operands = parser.line()
-    assert get_addressing_mode(parser, operands, []) == AddressingMode.EXT
+    assert get_addressing_mode(parser, operands) == AddressingMode.EXT
     _, operands = parser.line()
-    assert get_addressing_mode(parser, operands, []) == AddressingMode.INH
+    assert get_addressing_mode(parser, operands) == AddressingMode.INH
+
+
+def test_operands_state_machine(parser, addr_codes):
+    parser = Parser(addr_codes[3])
+    _, operands = parser.line()
+    assert operands_state_machine(parser, operands, []) == AddressingMode.IMM
+    _, operands = parser.line()
+    assert operands_state_machine(parser, operands, []) == AddressingMode.DIR
+    _, operands = parser.line()
+    assert operands_state_machine(parser, operands, []) == AddressingMode.IDX
+    _, operands = parser.line()
+    assert operands_state_machine(parser, operands, []) == AddressingMode.REL
+    _, operands = parser.line()
+    assert operands_state_machine(parser, operands, []) == AddressingMode.EXT
+    _, operands = parser.line()
+    assert operands_state_machine(parser, operands, []) == AddressingMode.INH

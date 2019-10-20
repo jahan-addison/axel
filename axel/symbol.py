@@ -13,75 +13,9 @@
     along with axel.  If not, see <https://www.gnu.org/licenses/>.
 """
 from typing import Union, Dict, Tuple
+from ctypes import c_uint16
 
-
-class U_Int8:
-    def __init__(self, num: int) -> None:
-        self.num = num & 255
-
-    def __repr__(self) -> str:
-        return str(self.num)
-
-    def __add__(self, of: int) -> int:
-        return (self.num + of) & 255
-
-    def __iadd__(self, of: int) -> int:
-        self.num = (self.num + of) & 255
-        return self.num
-
-    def __sub__(self, of: int) -> int:
-        return (self.num - of) & 255
-
-    def __isub__(self, of: int) -> int:
-        self.num = (self.num - of) & 255
-        return self.num
-
-
-class Int8:
-    def __init__(self, num: int) -> None:
-        self.num = (num << 24) >> 24
-
-    def __repr__(self) -> str:
-        return str(self.num)
-
-    def __add__(self, of: int) -> int:
-        return ((self.num + of) << 24) >> 24
-
-    def __iadd__(self, of: int) -> int:
-        self.num = self.__add__(of)
-        return self.num
-
-    def __sub__(self, of: int) -> int:
-        return ((self.num - of) << 24) >> 24
-
-    def __isub__(self, of: int) -> int:
-        self.num = self.__sub__(of)
-        return self.num
-
-
-class U_Int16:
-    def __init__(self, num: int) -> None:
-        self.num = num & 65535
-
-    def __repr__(self) -> str:
-        return str(self.num)
-
-    def __add__(self, of: int) -> int:
-        return (self.num + of) & 65535
-
-    def __iadd__(self, of: int) -> int:
-        self.num = (self.num + of) & 65535
-        return self.num
-
-    def __sub__(self, of: int) -> int:
-        return (self.num - of) & 65535
-
-    def __isub__(self, of: int) -> int:
-        self.num = (self.num - of) & 65535
-        return self.num
-
-
-TableField = Tuple[U_Int16, str, Union[U_Int16, str, bytes]]
+TableField = Tuple[c_uint16, str, Union[c_uint16, str, bytes]]
 
 
 class Symbol_Table:
@@ -90,9 +24,10 @@ class Symbol_Table:
 
     def set(self,
             label: str,
-            addr: U_Int16,
+            addr: c_uint16,
             type: str,
-            value: Union[U_Int16, str, bytes]) -> None:
+            value: Union[c_uint16, str, bytes]) -> None:
+
         self.table[label] = (addr, type, value)
 
     def get(self, label: str) -> TableField:

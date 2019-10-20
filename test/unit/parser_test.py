@@ -78,7 +78,7 @@ def test_variable(parser, code, symbol_table):
     next(test.lexer) # eat token
     test.variable(test.lexer.yylex)
     entry = test.symbols.table['OUTCH']
-    assert entry[0].num == 0
+    assert entry[0].value == 0
     assert entry[1] == 'variable'
     assert entry[2] == b'\xfe:'
     assert test.lexer._pointer == 13

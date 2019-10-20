@@ -108,11 +108,11 @@ T_TXS	../axel/tokens.py	/^    T_TXS = auto()$/;"	kind:variable	line:158
 T_UNKNOWN	../axel/tokens.py	/^    T_UNKNOWN = auto()$/;"	kind:variable	line:47
 T_WAI	../axel/tokens.py	/^    T_WAI = auto()$/;"	kind:variable	line:159
 T_X	../axel/tokens.py	/^    T_X = auto()$/;"	kind:variable	line:79
-TableField	../axel/symbol.py	/^TableField = Tuple[U_Int16, str, Union[U_Int16, str]]$/;"	kind:variable	line:56
+TableField	../axel/symbol.py	/^TableField = Tuple[c_uint16, str, Union[c_uint16, str]]$/;"	kind:variable	line:56
 Token	../axel/tokens.py	/^class Token(TokenEnum):$/;"	kind:class	line:36
 TokenEnum	../axel/tokens.py	/^class TokenEnum(Enum):$/;"	kind:class	line:21
-U_Int16	../axel/symbol.py	/^class U_Int16:$/;"	kind:class	line:37
-U_Int8	../axel/symbol.py	/^class U_Int8:$/;"	kind:class	line:18
+c_uint16	../axel/symbol.py	/^class c_uint16:$/;"	kind:class	line:37
+c_uint8	../axel/symbol.py	/^class c_uint8:$/;"	kind:class	line:18
 __add__	../axel/symbol.py	/^    def __add__(self, of: int) -> int:$/;"	kind:member	line:22
 __add__	../axel/symbol.py	/^    def __add__(self, of: int) -> int:$/;"	kind:member	line:41
 __iadd__	../axel/symbol.py	/^    def __iadd__(self, of: int) -> int:$/;"	kind:member	line:25

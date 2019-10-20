@@ -14,9 +14,10 @@
 """
 import axel.tokens as Tokens
 from collections import deque
+from ctypes import c_uint16
 from typing import Union, List, overload, Deque, Tuple
 from axel.lexer import Lexer, Yylex
-from axel.symbol import Symbol_Table, U_Int16
+from axel.symbol import Symbol_Table
 
 token_t = Union[Tokens.Token, Tokens.Mnemonic, Tokens.Register]
 
@@ -118,7 +119,7 @@ class Parser:
             if symbol is not None and isinstance(symbol[2], str):
                 self.symbols.set(
                     name,
-                    U_Int16(addr),
+                    c_uint16(addr),
                     'variable',
                     self.parse_immediate_value(symbol[2]))
             else:

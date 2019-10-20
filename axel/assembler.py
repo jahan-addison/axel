@@ -14,19 +14,20 @@
 """
 from io import BytesIO
 from collections import deque
+from ctypes import c_uint8, c_uint16
 from typing import Deque, Union, Optional
-from axel.symbol import U_Int16, U_Int8, Symbol_Table
+from axel.symbol import Symbol_Table
 from axel.lexer import Lexer
 from axel.parser import Parser
 from bitarray import bitarray
 
 
 class Registers:
-    AccA: U_Int8 = U_Int8(0)
-    AccB: U_Int8 = U_Int8(0)
-    X: U_Int16 = U_Int16(0)
-    SP: U_Int16 = U_Int16(0)
-    PC: U_Int16 = U_Int16(0)
+    AccA: c_uint8 = c_uint8(0)
+    AccB: c_uint8 = c_uint8(0)
+    X: c_uint16 = c_uint16(0)
+    SP: c_uint16 = c_uint16(0)
+    PC: c_uint16 = c_uint16(0)
     SR: bitarray = bitarray([False] * 6)
 
 
