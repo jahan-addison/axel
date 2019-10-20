@@ -16,35 +16,24 @@
 from pampy import match, _
 from typing import Deque, Tuple, Union, Optional, List
 from axel.tokens import AddressingMode, Token, Register, TokenEnum
-from axel.lexer import Yylex
+from axel.tokens import First_Operand_States, Second_Operand_States
 from axel.assembler import Registers
+from axel.lexer import Yylex
 from axel.parser import Parser
-
-"""TODO: Logical operator DSL to generate assertions for mnemonics
-    Logic statements of the form:
-        [A] ← [A] + [B]
-        [A] ← [A] + data8 + C
-        [A] ← [A] + [data8 + [X]] + C
-"""
 
 Mode = Union[AddressingMode, Tuple[str, str, TokenEnum]]
 
-first_operand_states = [
-    Token.T_IMM_UINT16,
-    Token.T_DIR_ADDR_UINT8,
-    Token.T_DISP_ADDR_INT8,
-    Token.T_EXT_ADDR_UINT16,
-    Register.T_A,
-    Register.T_B
-]
 
-second_operand_states = [
-    Token.T_IMM_UINT8,
-    Token.T_IMM_UINT16,
-    Token.T_DIR_ADDR_UINT8,
-    Token.T_EXT_ADDR_UINT16,
-    Register.T_X,
-]
+class Opcode_Translate():
+    @staticmethod
+    def aba(addr_mode: AddressingMode,
+            operands: Deque[Yylex],
+            registers: Registers) -> bytearray:
+        opcode = bytearray.fromhex('1B')
+        if addr_mode == AddressingMode.INH:
+            Registers.AccA += Registers.AccB.num
+        return opcode
+
 
 def get_addressing_mode(parser: Parser, operands: Deque[Yylex]) -> AddressingMode:
     operands = operands.copy()
@@ -74,7 +63,7 @@ def operand_state_machine(parser: Parser,
                     Register.T_X,              AddressingMode.IDX,
                     _,                         ('error',
                                                 ', '.join(list(map(lambda x: x.name,
-                                                                   second_operand_states))),
+                                                                   Second_Operand_States))),
                                                 test)
                 ),
 
@@ -87,7 +76,7 @@ def operand_state_machine(parser: Parser,
                     Register.T_B,             AddressingMode.ACC,
                     _,                        ('error',
                                                ', '.join(list(map(lambda x: x.name,
-                                                    first_operand_states))),
+                                                    First_Operand_States))),
                                                 test)
                 ),
 
@@ -102,14 +91,3 @@ def operand_state_machine(parser: Parser,
         return operand_state_machine(parser, operands, mode_stack)
 
     return AddressingMode.INH if len(mode_stack) == 0 else mode_stack[0]
-
-
-class Opcodes():
-    @staticmethod
-    def aba(addr_mode: AddressingMode,
-            operands: Deque[Yylex],
-            registers: Registers) -> bytearray:
-        opcode = bytearray.fromhex('1B')
-        if addr_mode == AddressingMode.INH:
-            Registers.AccA += Registers.AccB.num
-        return opcode

@@ -25,6 +25,8 @@ def test_uint8() -> None:
     assert uint8_2 - 5 == 255 - 5
     uint8 += 1
     assert uint8.num == 1
+    uint8 -= 2
+    assert uint8.num == 255
 
 def test_int8() -> None:
     int8 = Int8(-128)
@@ -35,6 +37,8 @@ def test_int8() -> None:
     assert int8_2 - 5 == 127 - 5
     int8 += 1
     assert int8.num == 1
+    int8 -= 2
+    assert int8.num == -1
 
 def test_uint16() -> None:
     uint16 = U_Int16(0)

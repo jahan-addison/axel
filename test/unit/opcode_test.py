@@ -45,7 +45,7 @@ def addr_codes() -> List[str]:
             ''']
 
 
-def test_get_addressing_mode(parser, addr_codes):
+def test_get_addressing_mode(parser, addr_codes) -> None:
     parser = Parser(addr_codes[3])
     _, operands = parser.line()
     assert get_addressing_mode(parser, operands) == AddressingMode.IMM
@@ -61,7 +61,7 @@ def test_get_addressing_mode(parser, addr_codes):
     assert get_addressing_mode(parser, operands) == AddressingMode.INH
 
 
-def test_operand_state_machine(parser, addr_codes):
+def test_operand_state_machine(parser, addr_codes) -> None:
     parser = Parser(addr_codes[3])
     _, operands = parser.line()
     assert operand_state_machine(parser, operands, []) == AddressingMode.IMM

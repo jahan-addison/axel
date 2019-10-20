@@ -34,7 +34,7 @@ class TokenEnum(Enum):
 
 @unique
 class Token(TokenEnum):
-    """Token tokens.
+    """Lexeme tokens.
 
     General language lexemes and data types.
     """
@@ -160,6 +160,32 @@ class Mnemonic(TokenEnum):
     T_WAI = auto()
 
 
+"""
+    The valid list of 1-ary operands.
+"""
+First_Operand_States = set([
+    Token.T_IMM_UINT16,
+    Token.T_DIR_ADDR_UINT8,
+    Token.T_DISP_ADDR_INT8,
+    Token.T_EXT_ADDR_UINT16,
+    Register.T_A,
+    Register.T_B
+])
+
+"""
+    The valid list of 2-ary operands.
+"""
+Second_Operand_States = set([
+    Token.T_IMM_UINT8,
+    Token.T_IMM_UINT16,
+    Token.T_DIR_ADDR_UINT8,
+    Token.T_EXT_ADDR_UINT16,
+    Register.T_X,
+])
+
+"""
+    Branch mnemonics.
+"""
 Branch_Mnemonics = set([
     Mnemonic.T_BCC,
     Mnemonic.T_BCS,

@@ -47,7 +47,7 @@ def code() -> List[str]:
         '''START JSR $FCBC	;SET UP FIRST DISPLAY ADDRESS''',
         '\n\nADD B #$10\n']
 
-def test_take(parser, code):
+def test_take(parser, code) -> None:
     test = parser(code[0])
     test.take(Tokens.Token.T_LABEL)
     with pytest.raises(AssemblerParserError):
@@ -58,13 +58,18 @@ def test_take(parser, code):
     test.take([Tokens.Register.T_A, Tokens.Register.T_B])
     test.take([Tokens.Token.T_IMM_UINT8])
 
-def test_error(parser, code):
+def test_parse_immediate_value(parser, code) -> None:
+    test = parser(code[0])
+    assert test.parse_immediate_value('#$10') == b'\x10'
+    assert test.parse_immediate_value('$10') == b'\x10'
+
+def test_error(parser, code) -> None:
     test = parser(code[0])
     expected = 'Parser failed near "SAME LDA B #", expected one of T_LABEL, but found "T_EOL"'
     with pytest.raises(AssemblerParserError, match=expected) as error:
         test.error('T_LABEL', Tokens.Token.T_EOL)
 
-def test_line(parser, code):
+def test_line(parser, code) -> None:
     test = parser(code[3])
     instruction, operands = test.line()
     assert instruction == Tokens.Mnemonic.T_ADD
@@ -73,7 +78,7 @@ def test_line(parser, code):
     assert len(operands) == 0
 
 
-def test_variable(parser, code, symbol_table):
+def test_variable(parser, code, symbol_table) -> None:
     test = parser(code[1], symbol_table(code[1]))
     next(test.lexer) # eat token
     test.variable(test.lexer.yylex)
@@ -83,10 +88,23 @@ def test_variable(parser, code, symbol_table):
     assert entry[2] == b'\xfe:'
     assert test.lexer._pointer == 13
 
-def test_operands(parser, code):
+def test_operands(parser, code) -> None:
     test = parser(code[0])
     test.lexer._pointer = 9
     operands = test.operands()
     immediate, register = operands
+    assert register['token'] == Tokens.Register.T_B
+    assert immediate['token'] == Tokens.Token.T_IMM_UINT8
+
+def test_instructions(parser, code) -> None:
+    test = parser(code[0])
+    test.lexer._pointer = 9
+    test.lexer.yylex = {
+        'token': Tokens.Mnemonic.T_LDA,
+        'data': None
+    }
+    instruction, operands = test.instruction(test.lexer.yylex)
+    immediate, register = operands
+    assert instruction == Tokens.Mnemonic.T_LDA
     assert register['token'] == Tokens.Register.T_B
     assert immediate['token'] == Tokens.Token.T_IMM_UINT8
