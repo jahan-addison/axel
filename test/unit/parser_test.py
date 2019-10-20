@@ -16,7 +16,7 @@ import pytest
 from typing import List
 import axel.tokens as Tokens  # Token, Mnemonic, Register
 from axel.lexer import Lexer
-from axel.symbol import Symbol_Table
+from axel.symbol import Symbol_Table, U_Int16
 from axel.parser import Parser, AssemblerParserError
 
 @pytest.fixture
@@ -78,7 +78,7 @@ def test_variable(parser, code, symbol_table):
     next(test.lexer) # eat token
     test.variable(test.lexer.yylex)
     entry = test.symbols.table['OUTCH']
-    assert entry[0].value == 0
+    assert entry[0].num == 0
     assert entry[1] == 'variable'
     assert entry[2] == b'\xfe:'
     assert test.lexer._pointer == 13

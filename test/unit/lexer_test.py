@@ -15,7 +15,7 @@
 import pytest
 from os import linesep
 from typing import List
-from axel.symbol import c_uint16
+from axel.symbol import U_Int16
 from axel.tokens import Token as Token,  Mnemonic, Register
 from axel.lexer import Lexer
 

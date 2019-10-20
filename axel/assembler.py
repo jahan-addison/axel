@@ -14,35 +14,39 @@
 """
 from io import BytesIO
 from collections import deque
-from ctypes import c_uint8, c_uint16
 from typing import Deque, Union, Optional
-from axel.symbol import Symbol_Table
+from axel.symbol import Symbol_Table, U_Int8, U_Int16
 from axel.lexer import Lexer
 from axel.parser import Parser
 from bitarray import bitarray
 
+Stack = Deque[Union[int, str]]
+
 
 class Registers:
-    AccA: c_uint8 = c_uint8(0)
-    AccB: c_uint8 = c_uint8(0)
-    X: c_uint16 = c_uint16(0)
-    SP: c_uint16 = c_uint16(0)
-    PC: c_uint16 = c_uint16(0)
+    AccA: U_Int8 = U_Int8(0)
+    AccB: U_Int8 = U_Int8(0)
+    X: U_Int16 = U_Int16(0)
+    SP: U_Int16 = U_Int16(0)
+    PC: U_Int16 = U_Int16(0)
     SR: bitarray = bitarray([False] * 6)
+    _stack: Stack = deque()
 
 
 class Assembler:
     def __init__(self, source: str) -> None:
         self.lexer = Optional[Lexer]
-        self.symbol_table: Symbol_Table = self.construct_symbol_table(
+        self.symbol_table: Symbol_Table = self._construct_symbol_table(
             source
         )
         self.parser: Parser = Parser(source, self.symbol_table)
         self.program: BytesIO = BytesIO()
-        self.stack: Deque[Union[int, str]] = deque()
 
-    def construct_symbol_table(self, source: str) -> Symbol_Table:
+    def _construct_symbol_table(self, source: str) -> Symbol_Table:
         self.lexer = Lexer(source)
         for token in self.lexer:
             pass
         return self.lexer.symbols
+
+    def assemble(self) -> BytesIO:
+        return self.program

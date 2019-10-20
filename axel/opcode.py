@@ -17,6 +17,7 @@ from pampy import match, _
 from typing import Deque, Tuple, Union, Optional, List
 from axel.tokens import AddressingMode, Token, Register, TokenEnum
 from axel.lexer import Yylex
+from axel.assembler import Registers
 from axel.parser import Parser
 
 """TODO: Logical operator DSL to generate assertions for mnemonics
@@ -48,10 +49,10 @@ second_operand_states = [
 def get_addressing_mode(parser: Parser, operands: Deque[Yylex]) -> AddressingMode:
     operands = operands.copy()
 
-    return operands_state_machine(parser, operands, [])
+    return operand_state_machine(parser, operands, [])
 
 
-def operands_state_machine(parser: Parser,
+def operand_state_machine(parser: Parser,
                            operands: Deque[Yylex],
                            mode_stack: List[AddressingMode]) -> AddressingMode:
     size: int = len(operands)
@@ -98,6 +99,17 @@ def operands_state_machine(parser: Parser,
             operands.popleft()
             mode_stack.append(mode)
 
-        return operands_state_machine(parser, operands, mode_stack)
+        return operand_state_machine(parser, operands, mode_stack)
 
     return AddressingMode.INH if len(mode_stack) == 0 else mode_stack[0]
+
+
+class Opcodes():
+    @staticmethod
+    def aba(addr_mode: AddressingMode,
+            operands: Deque[Yylex],
+            registers: Registers) -> bytearray:
+        opcode = bytearray.fromhex('1B')
+        if addr_mode == AddressingMode.INH:
+            Registers.AccA += Registers.AccB.num
+        return opcode
