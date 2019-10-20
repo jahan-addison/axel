@@ -14,10 +14,8 @@
 """
 from axel.lexer import Lexer
 from axel.parser import Parser
-from assembler import Registers
 
 with open('./etc/healthkit.asm') as f:
-    print(Registers.AccA)
     source = f.read()
     test = Lexer(source)
     for token in test:
