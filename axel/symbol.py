@@ -63,7 +63,6 @@ class Int8:
         return self
 
     def __sub__(self, of: int) -> int:
-        print(self.num)
         return self._to_int8(self.num - of)
 
     def __isub__(self: Y, of: int) -> Y:
