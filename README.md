@@ -1,4 +1,4 @@
-# axel
+# axel [![Build Status](https://travis-ci.org/jahan-addison/axel.svg?branch=master)](https://travis-ci.org/jahan-addison/axel)
 ## Motorola 6800 assembler
 
 <img src="https://upload.wikimedia.org/wikipedia/commons/5/5a/Motorola_MC6800_microprocessor.jpg" width="780" />
@@ -11,7 +11,7 @@
 * Multipass assembler:
     * Symbol table and IR pass
     * Opcode byte translation pass
-* Fully tested with robust test suite and coverage
+* Fully tested with robust test suite (90+% coverage)
 
 ### Device:
 

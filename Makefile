@@ -8,7 +8,7 @@ type:
 lint: type
 	poetry run python -m flake8 --ignore E704,F811 $(project)/*.py
 
-test:
+test: lint
 	poetry run pytest --cov=axel --disable-warnings -s
 
 start: lint
