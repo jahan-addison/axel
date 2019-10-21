@@ -13,12 +13,19 @@
     along with axel.  If not, see <https://www.gnu.org/licenses/>.
 """
 import pytest
-from os import linesep
 from typing import List
+from axel.symbol import U_Int8
+from axel.assembler import Registers
 from axel.tokens import AddressingMode
-from axel.parser import Parser
-from axel.opcode import get_addressing_mode, operand_state_machine
+from axel.parser import Parser, AssemblerParserError
+from axel.opcode import Opcodes, get_addressing_mode, operand_state_machine
 
+
+@pytest.fixture(scope='module')
+def registers() -> Registers:
+    Registers.AccA = U_Int8(0)
+    Registers.AccB = U_Int8(0)
+    yield Registers
 
 @pytest.fixture
 def parser() -> Parser:
@@ -42,7 +49,7 @@ def addr_codes() -> List[str]:
             BGE $FE
             BIT B $FCBC
             DAA
-            ''']
+            DAA X''']
 
 
 def test_get_addressing_mode(parser, addr_codes) -> None:
@@ -60,7 +67,6 @@ def test_get_addressing_mode(parser, addr_codes) -> None:
     _, operands = parser.line()
     assert get_addressing_mode(parser, operands) == AddressingMode.INH
 
-
 def test_operand_state_machine(parser, addr_codes) -> None:
     parser = Parser(addr_codes[3])
     _, operands = parser.line()
@@ -75,3 +81,14 @@ def test_operand_state_machine(parser, addr_codes) -> None:
     assert operand_state_machine(parser, operands, []) == AddressingMode.EXT
     _, operands = parser.line()
     assert operand_state_machine(parser, operands, []) == AddressingMode.INH
+    with pytest.raises(AssemblerParserError):
+        _, operands = parser.line()
+
+def test_opcode_aba(parser, registers) -> None:
+    parser = Parser('ABA\n')
+    instruction, operands = parser.line()
+    r = registers()
+    r.AccA = U_Int8(5)
+    r.AccB = U_Int8(10)
+    assert Opcodes.aba(AddressingMode.INH, operands, r) == b'\x1b'
+    assert r.AccA.num == 15

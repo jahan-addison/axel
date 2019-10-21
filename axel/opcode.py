@@ -17,21 +17,21 @@ from pampy import match, _
 from typing import Deque, Tuple, Union, Optional, List
 from axel.tokens import AddressingMode, Token, Register, TokenEnum
 from axel.tokens import First_Operand_States, Second_Operand_States
-from axel.assembler import Registers
+from axel.assembler import Registers as Register_T
 from axel.lexer import Yylex
 from axel.parser import Parser
 
 Mode = Union[AddressingMode, Tuple[str, str, TokenEnum]]
 
 
-class Opcode_Translate():
+class Opcodes():
     @staticmethod
     def aba(addr_mode: AddressingMode,
             operands: Deque[Yylex],
-            registers: Registers) -> bytearray:
+            registers: Register_T) -> bytearray:
         opcode = bytearray.fromhex('1B')
         if addr_mode == AddressingMode.INH:
-            Registers.AccA += Registers.AccB.num
+            registers.AccA += registers.AccB.num
         return opcode
 
 
