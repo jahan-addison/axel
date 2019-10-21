@@ -90,5 +90,5 @@ def test_opcode_aba(parser, registers) -> None:
     r = registers()
     r.AccA = U_Int8(5)
     r.AccB = U_Int8(10)
-    assert Opcodes.aba(AddressingMode.INH, operands, r) == b'\x1b'
+    assert Opcodes.aba(AddressingMode.ACC, operands, r) == b'\x1b'
     assert r.AccA.num == 15

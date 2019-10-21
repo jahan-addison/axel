@@ -30,7 +30,7 @@ class Opcodes():
             operands: Deque[Yylex],
             registers: Register_T) -> bytearray:
         opcode = bytearray.fromhex('1B')
-        if addr_mode == AddressingMode.INH:
+        if addr_mode == AddressingMode.ACC:
             registers.AccA += registers.AccB.num
         return opcode
 
