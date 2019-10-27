@@ -1,3 +1,4 @@
+# flake8: noqa
 """
     axel is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -12,7 +13,6 @@
     You should have received a copy of the GNU General Public License
     along with axel.  If not, see <https://www.gnu.org/licenses/>.
 """
-# flake8: noqa
 import types
 from pampy import match, _
 from bitarray import bitarray
