@@ -11,15 +11,19 @@ The 6800 has a 16-bit address bus that can directly access 64 kB of memory and a
 
 # Assembler Design
 
-* Fast, LL(1) of the 6800 assembly language.
+* Fast, LL(1) of the 6800 assembly language
 * Strongly typed, with [mypy --strict](http://mypy-lang.org/)
-* Verbose errors and adept parser error recovery.
+* Verbose errors and adept parser error recovery
 * Multipass assembler:
-    * Symbol table and IR pass.
-    * Opcode byte translation pass.
+    * Symbol table and IR pass
+    * Opcode byte translation pass
 
 
-Fully tested with robust test suite. (90% coverage)
+Fully tested with robust test suite. (> 90% coverage)
+
+### Not Implemented
+
+* Interrupt flag and instructions
 
 
 # Development
