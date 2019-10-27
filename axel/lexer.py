@@ -23,7 +23,7 @@ from mypy_extensions import TypedDict
 M = TypeVar('M', bound='Lexer')
 
 
-class Yylex(TypedDict, total=False):
+class yylex_t(TypedDict, total=False):
     token: TokenEnum
     data: Optional[str]
 
@@ -39,7 +39,7 @@ class Lexer:
     def __init__(self, source: str) -> None:
         self._source: str = source
         self._pointer: int = 0
-        self.yylex: Yylex = {
+        self.yylex: yylex_t = {
             'token': Token.T_UNKNOWN,
             'data': None
         }

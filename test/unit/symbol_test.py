@@ -13,8 +13,7 @@
     along with axel.  If not, see <https://www.gnu.org/licenses/>.
 """
 import pytest
-from axel.symbol import Symbol_Table, U_Int16, U_Int8, Int8
-
+from axel.symbol import *
 
 def test_uint8() -> None:
     uint8 = U_Int8(0)
@@ -27,6 +26,10 @@ def test_uint8() -> None:
     assert uint8.num == 1
     uint8 -= 2
     assert uint8.num == 255
+    assert uint8.raw == -1
+    uint8_2 = U_Int8(255)
+    uint8_2 += 2
+    assert uint8_2.raw == 257
 
 def test_int8() -> None:
     int8 = Int8(-128)

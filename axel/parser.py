@@ -15,10 +15,10 @@
 import axel.tokens as Tokens
 from collections import deque
 from typing import Union, List, overload, Deque, Tuple
-from axel.lexer import Lexer, Yylex
+from axel.lexer import Lexer, yylex_t
 from axel.symbol import Symbol_Table, U_Int16
 
-token_t = Union[Tokens.Token, Tokens.Mnemonic, Tokens.Register]
+Token_T = Union[Tokens.Token, Tokens.Mnemonic, Tokens.Register]
 
 
 class AssemblerParserError(Exception):
@@ -49,12 +49,12 @@ class Parser:
             return bytes.fromhex(value[1:])
 
     @overload
-    def take(self, test: List[token_t]) -> None: ...
+    def take(self, test: List[Token_T]) -> None: ...
 
     @overload
-    def take(self, test: token_t) -> None: ...
+    def take(self, test: Token_T) -> None: ...
 
-    def take(self, test: Union[token_t, List[token_t]]) -> None:
+    def take(self, test: Union[Token_T, List[Token_T]]) -> None:
         lexer = self.lexer
         next_token = next(lexer)
         if isinstance(test, list):
@@ -68,7 +68,7 @@ class Parser:
                 self.error(test.name, next_token)
 
     def line(self) -> Union[
-            Tuple[Tokens.TokenEnum, Deque[Yylex]],
+            Tuple[Tokens.TokenEnum, Deque[yylex_t]],
             bool]:
         lexer = self.lexer
         test = [
@@ -106,7 +106,7 @@ class Parser:
         self.error(', '.join(test), lexer.yylex['token'])
         return False
 
-    def variable(self, label: Yylex) -> None:
+    def variable(self, label: yylex_t) -> None:
         name = label['data']
         addr = self.lexer.last_addr
         self.take(Tokens.Token.T_EQUAL)
@@ -125,8 +125,8 @@ class Parser:
                 raise AssemblerParserError(
                     f'Parser failed on variable "{name}"')
 
-    def operands(self) -> Deque[Yylex]:
-        stack: Deque[Yylex] = deque()
+    def operands(self) -> Deque[yylex_t]:
+        stack: Deque[yylex_t] = deque()
         datatypes = [
             Tokens.Token.T_IMM_UINT8,
             Tokens.Token.T_IMM_UINT16,
@@ -150,5 +150,5 @@ class Parser:
 
     def instruction(
             self,
-            instruction: Yylex) -> Tuple[Tokens.TokenEnum, Deque[Yylex]]:
+            instruction: yylex_t) -> Tuple[Tokens.TokenEnum, Deque[yylex_t]]:
         return (instruction['token'], self.operands())

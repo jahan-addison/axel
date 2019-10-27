@@ -20,17 +20,31 @@ from axel.lexer import Lexer
 from axel.parser import Parser
 from bitarray import bitarray
 
-Stack = Deque[Union[int, str]]
+Stack_T = Deque[Union[int, str]]
 
 
 class Registers:
+    """A Accumulator """
     AccA: U_Int8 = U_Int8(0)
+    """B Accumulator """
     AccB: U_Int8 = U_Int8(0)
+    """Index register """
     X: U_Int16 = U_Int16(0)
+    """Stack pointer """
     SP: U_Int16 = U_Int16(0)
+    """Program counter """
     PC: U_Int16 = U_Int16(0)
+    """Status register:
+        C Carry status
+        Z Zero status
+        S Sign status
+        O Overflow status
+        I Interrupt Mask status (unimplemented)
+        AC Auxiliary Carry status
+    """
     SR: bitarray = bitarray([False] * 6)
-    _stack: Stack = deque()
+    """Stack data """
+    _stack: Stack_T = deque()
 
 
 class Assembler:

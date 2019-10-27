@@ -21,22 +21,27 @@ M = TypeVar('M', bound='U_Int16')
 
 class U_Int8:
     def __init__(self, num: int) -> None:
+        self.raw = num
         self.num = num & 255
 
     def __repr__(self) -> str:
         return str(self.num)
 
     def __add__(self, of: int) -> int:
+        self.raw += of
         return (self.num + of) & 255
 
     def __iadd__(self: X, of: int) -> X:
+        self.raw += of
         self.num = (self.num + of) & 255
         return self
 
     def __sub__(self, of: int) -> int:
+        self.raw -= of
         return (self.num - of) & 255
 
     def __isub__(self: X, of: int) -> X:
+        self.raw -= of
         self.num = (self.num - of) & 255
         return self
 

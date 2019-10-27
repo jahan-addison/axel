@@ -16,7 +16,7 @@ import pytest
 import pathlib
 from collections import deque
 from axel.symbol import Symbol_Table
-from axel.tokens import Token as Token, Mnemonic, Register
+from axel.tokens import Token, Mnemonic, Register
 from axel.lexer import Lexer
 from axel.parser import Parser, AssemblerParserError
 

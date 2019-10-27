@@ -17,7 +17,7 @@ from typing import List
 import axel.tokens as Tokens  # Token, Mnemonic, Register
 from axel.lexer import Lexer
 from axel.symbol import Symbol_Table, U_Int16
-from axel.parser import Parser, AssemblerParserError
+from axel.parser import *
 
 @pytest.fixture
 def parser() -> Parser:
