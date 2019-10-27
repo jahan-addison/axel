@@ -19,13 +19,35 @@ from bitarray import bitarray
 from typing import Deque, Tuple, Union, List, Any, Callable
 from axel.assembler import Registers as Register_T  # get class type
 from axel.tokens import AddressingMode, Token, Register, TokenEnum
-from axel.tokens import First_Operand_States, Second_Operand_States
 from axel.symbol import U_Int8
 from axel.lexer import yylex_t
 from axel.parser import Parser
 
 
 Mode_T = Union[AddressingMode, Tuple[str, str, TokenEnum]]
+
+"""
+    The valid list of 1-ary operands.
+"""
+First_Operand_States = set([
+    Token.T_IMM_UINT16,
+    Token.T_DIR_ADDR_UINT8,
+    Token.T_DISP_ADDR_INT8,
+    Token.T_EXT_ADDR_UINT16,
+    Register.T_A,
+    Register.T_B
+])
+
+"""
+    The valid list of 2-ary operands.
+"""
+Second_Operand_States = set([
+    Token.T_IMM_UINT8,
+    Token.T_IMM_UINT16,
+    Token.T_DIR_ADDR_UINT8,
+    Token.T_EXT_ADDR_UINT16,
+    Register.T_X,
+])
 
 
 def processing(func: types.FunctionType,
