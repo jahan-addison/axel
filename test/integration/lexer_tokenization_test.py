@@ -14,16 +14,19 @@
 """
 import pytest
 import pathlib
+from typing import Callable
 from collections import deque
 from axel.tokens import Token, Mnemonic, Register
 from axel.lexer import Lexer
 
-@pytest.fixture
-def lexer() -> Lexer:
-    def _make_lexer(source):
+
+@pytest.fixture  # type: ignore
+def lexer() -> Callable[[str], Lexer]:
+    def _make_lexer(source: str) -> Lexer:
         return Lexer(source)
 
     return _make_lexer
+
 
 expected = deque([
     Token.T_VARIABLE,
@@ -54,8 +57,8 @@ expected = deque([
     Mnemonic.T_LDA,
     Register.T_B,
     Token.T_DIR_ADDR_UINT8
-
 ])
+
 
 symbols = deque([
     'REDIS',
@@ -64,6 +67,7 @@ symbols = deque([
     'START',
     'SAME'
 ])
+
 
 def test_lexer_tokenization() -> None:
     with open(f'{pathlib.Path(__file__).parent.parent}/etc/fixture.asm') as f:

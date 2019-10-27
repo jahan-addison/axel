@@ -13,22 +13,28 @@
     along with axel.  If not, see <https://www.gnu.org/licenses/>.
 """
 import pytest
-from typing import List
+from typing import List, Callable, Optional, Deque
 import axel.tokens as Tokens  # Token, Mnemonic, Register
-from axel.lexer import Lexer
-from axel.symbol import Symbol_Table, U_Int16
-from axel.parser import *
+from axel.lexer import Lexer, yylex_t
+from axel.symbol import Symbol_Table
+from axel.parser import Parser, AssemblerParserError
 
-@pytest.fixture
-def parser() -> Parser:
-    def _get_parser(source, symbols = Symbol_Table()):
-        return Parser(source, symbols)
+f1_t = Callable[[str, Optional[Symbol_Table]], Parser]
+f2_t = Callable[[str], Optional[Symbol_Table]]
+f3_t = List[str]
+
+
+@pytest.fixture  # type: ignore
+def parser() -> f1_t:
+    def _get_parser(source: str, symbols: Optional[Symbol_Table]) -> Parser:
+        return Parser(source, symbols or Symbol_Table())
 
     return _get_parser
 
-@pytest.fixture
-def symbol_table() -> Symbol_Table:
-    def _get_symbols(source):
+
+@pytest.fixture  # type: ignore
+def symbol_table() -> f2_t:
+    def _get_symbols(source: str) -> Symbol_Table:
         scanner = Lexer(source)
         for token in scanner:
             pass
@@ -36,9 +42,11 @@ def symbol_table() -> Symbol_Table:
 
     return _get_symbols
 
-@pytest.fixture
-def code() -> List[str]:
-    return ['''SAME LDA B #$F0	; FIX DISPLAY ADDRESS
+
+@pytest.fixture  # type: ignore
+def code() -> f3_t:
+    return [
+        '''SAME LDA B #$F0	; FIX DISPLAY ADDRESS
             ADD B #$10
         ''',
         '''OUTCH = $FE3A
@@ -47,8 +55,9 @@ def code() -> List[str]:
         '''START JSR $FCBC	;SET UP FIRST DISPLAY ADDRESS''',
         '\n\nADD B #$10\n']
 
-def test_take(parser, code) -> None:
-    test = parser(code[0])
+
+def test_take(parser: f1_t, code: f3_t) -> None:
+    test = parser(code[0], None)
     test.take(Tokens.Token.T_LABEL)
     with pytest.raises(AssemblerParserError):
         test.take(Tokens.Mnemonic.T_ABA)
@@ -58,29 +67,38 @@ def test_take(parser, code) -> None:
     test.take([Tokens.Register.T_A, Tokens.Register.T_B])
     test.take([Tokens.Token.T_IMM_UINT8])
 
-def test_parse_immediate_value(parser, code) -> None:
-    test = parser(code[0])
+
+def test_parse_immediate_value(parser: f1_t, code: f3_t) -> None:
+    test = parser(code[0], None)
     assert test.parse_immediate_value('#$10') == b'\x10'
     assert test.parse_immediate_value('$10') == b'\x10'
 
-def test_error(parser, code) -> None:
-    test = parser(code[0])
-    expected = 'Parser failed near "SAME LDA B #", expected one of T_LABEL, but found "T_EOL"'
-    with pytest.raises(AssemblerParserError, match=expected) as error:
+
+def test_error(parser: f1_t, code: f3_t) -> None:
+    test = parser(code[0], None)
+    expected = 'Parser failed near "SAME LDA B #", ' \
+               'expected one of T_LABEL, but found'  \
+               ' "T_EOL"'
+    with pytest.raises(AssemblerParserError, match=expected):
         test.error('T_LABEL', Tokens.Token.T_EOL)
 
-def test_line(parser, code) -> None:
-    test = parser(code[3])
-    instruction, operands = test.line()
+
+def test_line(parser: f1_t, code: f3_t) -> None:
+    test = parser(code[3], None)
+    instruction: Tokens.TokenEnum
+    operands: Deque[yylex_t]
+    line = test.line()
+    if not isinstance(line, bool):
+        instruction, operands = line
     assert instruction == Tokens.Mnemonic.T_ADD
     assert operands.pop()['token'] == Tokens.Register.T_B
     assert operands.pop()['token'] == Tokens.Token.T_IMM_UINT8
     assert len(operands) == 0
 
 
-def test_variable(parser, code, symbol_table) -> None:
+def test_variable(parser: f1_t, code: f3_t, symbol_table: f2_t) -> None:
     test = parser(code[1], symbol_table(code[1]))
-    next(test.lexer) # eat token
+    next(test.lexer)  # eat token
     test.variable(test.lexer.yylex)
     entry = test.symbols.table['OUTCH']
     assert entry[0].num == 0
@@ -88,16 +106,18 @@ def test_variable(parser, code, symbol_table) -> None:
     assert entry[2] == b'\xfe:'
     assert test.lexer._pointer == 13
 
-def test_operands(parser, code) -> None:
-    test = parser(code[0])
+
+def test_operands(parser: f1_t, code: f3_t) -> None:
+    test = parser(code[0], None)
     test.lexer._pointer = 9
     operands = test.operands()
     immediate, register = operands
     assert register['token'] == Tokens.Register.T_B
     assert immediate['token'] == Tokens.Token.T_IMM_UINT8
 
-def test_instructions(parser, code) -> None:
-    test = parser(code[0])
+
+def test_instructions(parser: f1_t, code: f3_t) -> None:
+    test = parser(code[0], None)
     test.lexer._pointer = 9
     test.lexer.yylex = {
         'token': Tokens.Mnemonic.T_LDA,

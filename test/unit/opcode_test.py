@@ -13,30 +13,39 @@
     along with axel.  If not, see <https://www.gnu.org/licenses/>.
 """
 import pytest
-from typing import List
+from typing import Callable, Any
 from axel.symbol import U_Int8
 from axel.assembler import Registers
 from axel.tokens import AddressingMode
-from axel.parser import Parser, AssemblerParserError
-from axel.opcode import *
+from axel.parser import Parser
+from axel.opcode import Translate
 
-@pytest.fixture(scope='module')
-def registers() -> Registers:
+f1_t = Callable[[], Any]
+f2_t = Callable[[str], Parser]
+
+
+@pytest.fixture(scope='module')  # type: ignore
+def registers() -> Callable[[], Any]:
     Registers.AccA = U_Int8(0)
     Registers.AccB = U_Int8(0)
     yield Registers
 
-@pytest.fixture
-def parser() -> Parser:
-    def _get_parser(source):
+
+@pytest.fixture  # type: ignore
+def parser() -> Callable[[str], Parser]:
+    def _get_parser(source: str) -> Parser:
         parser = Parser(source)
         return parser
 
     return _get_parser
 
-def test_opcode_aba(parser, registers) -> None:
-    parser = Parser('ABA\n')
-    instruction, operands = parser.line()
+
+def test_opcode_aba(parser: f2_t, registers: f1_t) -> None:
+    test = parser('ABA\n')
+    line = test.line()
+    if isinstance(line, bool):
+        raise AssertionError('line is bool')
+    instruction, operands = line
     r = registers()
     r.AccA = U_Int8(5)
     r.AccB = U_Int8(10)

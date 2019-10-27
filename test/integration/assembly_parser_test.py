@@ -14,21 +14,27 @@
 """
 import pytest
 import pathlib
+from typing import Callable
 from collections import deque
 from axel.symbol import Symbol_Table
 from axel.tokens import Token, Mnemonic, Register
 from axel.lexer import Lexer
 from axel.parser import Parser, AssemblerParserError
 
-@pytest.fixture
-def symbol_table() -> Symbol_Table:
-    def _get_symbols(source):
+f1_t = Callable[[str], Symbol_Table]
+
+
+@pytest.fixture  # type: ignore
+def symbol_table() -> Callable[[str], Symbol_Table]:
+
+    def _get_symbols(source: str) -> Symbol_Table:
         scanner = Lexer(source)
         for token in scanner:
             pass
         return scanner.symbols
 
     return _get_symbols
+
 
 expected = deque([
     (Mnemonic.T_JSR, Token.T_EXT_ADDR_UINT16),
@@ -37,7 +43,8 @@ expected = deque([
     (Mnemonic.T_LDA, Register.T_B, Token.T_DIR_ADDR_UINT8)
 ])
 
-def test_assembly_parser_error(symbol_table) -> None:
+
+def test_assembly_parser_error(symbol_table: f1_t) -> None:
     # unknown token
     test = Parser('FAIL\nADD B #$10\n', symbol_table('FAIL\nADD B #$10\n'))
     with pytest.raises(AssemblerParserError):
@@ -47,24 +54,27 @@ def test_assembly_parser_error(symbol_table) -> None:
     with pytest.raises(AssemblerParserError):
         test.take(Token.T_VARIABLE)
 
-def test_assembly_parser(symbol_table) -> None:
+
+def test_assembly_parser(symbol_table: f1_t) -> None:
     with open(f'{pathlib.Path(__file__).parent.parent}/etc/fixture.asm') as f:
         source = f.read()
         test = Parser(source, symbol_table(source))
-        assert test.line() == True  # variable
-        assert test.line() == True  # variable
-        assert test.line() == True  # variable
+        assert test.line() is True  # variable
+        assert test.line() is True  # variable
+        assert test.line() is True  # variable
         # note: skips empty lines
         line = test.line()
+        if isinstance(line, bool):
+            raise AssertionError('failed test')
         # test instruction parsing
         while line is not False:
             expect = expected.popleft()
-            instruction, operands = line
-            assert instruction == expect[0]
+            instruction, operands = line  # type: ignore
+            assert instruction == expect[0]  # type: ignore
             operands.reverse()
             index = 1
             for ops in operands:
-                assert ops['token'] == expect[index]
+                assert ops['token'] == expect[index]  # type: ignore
                 index += 1
 
             line = test.line()
