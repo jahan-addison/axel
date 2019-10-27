@@ -26,6 +26,7 @@ from axel.parser import Parser
 
 Mode_T = Union[AddressingMode, Tuple[str, str, TokenEnum]]
 
+
 """
     The valid list of 1-ary operands.
 """
