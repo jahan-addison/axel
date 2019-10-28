@@ -40,7 +40,11 @@ class Parser:
         self.symbols: Symbol_Table = symbols
 
     def error(self, expected: str, found: Tokens.TokenEnum) -> None:
-        """Provides supportive parser error data based on location in the lexer. """
+        """Parser error.
+
+        Provides supportive parser error details data based on
+        location in the lexer.
+         """
         location = self.lexer.last_addr
         source = self.lexer._source[location:location + 12].replace('\n', ' ')
         raise AssemblerParserError(
@@ -92,7 +96,8 @@ class Parser:
         """Parse a line in the 6800 program.
 
         Parses a line and returns True on variable definition.
-        Returns the instruction and its operand yylex data on instructions and labels.
+        Returns the instruction and its operand yylex data on instructions
+        and labels.
 
         Returns False otherwise or on completion.
         """
