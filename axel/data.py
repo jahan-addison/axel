@@ -124,7 +124,8 @@ def operand_state_machine(parser: Parser,
     operands for an instruction and the operand types.
 
     Builds a stack of addressing modes by running on each n operand.
-    The final instruction addressing mode is thus determined by the n_0 operand.
+    The final instruction addressing mode is thus determined by the n_0 operand
+    since the operand `deque` is provided in reverse order.
 
     By running for each operand recursively for `n-1` we validate order
     of operands state sets and their respective type and addressing modes

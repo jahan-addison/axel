@@ -17,7 +17,6 @@ The 6800 has a 16-bit address bus that can directly access 64 kB of memory and a
     * Symbol table and IR pass
     * Opcode byte translation pass
 * Verbose errors and adept parser error recovery
-* Instructional [Google style](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html#example-google) docstrings for education purposes.
 * Fully tested with robust test suite. ([> 90% coverage](https://travis-ci.org/jahan-addison/axel))
 
 ### Not Implemented
