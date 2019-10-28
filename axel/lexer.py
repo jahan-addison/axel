@@ -24,11 +24,9 @@ M = TypeVar('M', bound='Lexer')
 
 
 class yylex_t(TypedDict, total=False):
-    """The TypedDict for a `yytext' data type.
-
-    I.e, scanner token data."""
+    """The TypedDict for a `yylex` data type. """
     token: TokenEnum
-    data: Optional[str]
+    data: Optional[str]  # The `yytext` data
 
 
 class Lexer:

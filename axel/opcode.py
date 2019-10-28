@@ -21,6 +21,11 @@ from axel.assembler import Registers as Register_T  # get class type
 
 
 class Processor(type):
+    """The Processor metaclass.
+
+    Decorates each `Translate` staticmethod with pre- and post-processing
+    for the accumulator and status register flags in each instruction.
+    """
     def __new__(cls, name: str, bases: Any, attr: Dict[Any, Any]) -> Any:
         for name, value in attr.items():
             if not isinstance(value, types.FunctionType) \
@@ -31,10 +36,18 @@ class Processor(type):
 
 
 class Translate(metaclass=Processor):
+    """The Opcode translation static class.
+
+    Compiles each instruction operation per addressing mode, operands, and
+    registers, returning a bytearray of the opcode.
+
+    Runs post-processing on the accumulators and status register.
+    """
     @staticmethod
     def aba(addr_mode: AddressingMode,
             operands: Deque[yylex_t],
             registers: Register_T) -> bytearray:
+        """The ABA instruction. """
         opcode = bytearray.fromhex('1B')
         if addr_mode == AddressingMode.ACC:
             registers.AccA += registers.AccB.num
