@@ -54,7 +54,18 @@ Second_Operand_States = set([
 def processing(func: types.FunctionType,
                *args: Any,
                **kwargs: Any) -> Callable[[Any, Any], Any]:
+    """The `Processor` class decorator function.
+
+    Pre- and post-processing on opcode `Translate` methods.
+    Sets statuses in the status register and resets before each
+    instruction operation.
+    """
+
     def set_from_register(word: U_Int8, status_register: bitarray) -> None:
+        """Set status register flags.
+
+        Takes an accumulator and sets status register based on results.
+        """
         # carry flag
         if word.raw > 255:
             status_register[0] = True
@@ -66,10 +77,16 @@ def processing(func: types.FunctionType,
         if word.num == 0:
             status_register[1] = True
 
-    def set_status(*args: Any, **kwargs: Any) -> Any:
+    def set_status(*args: Any, **kwargs: Any) -> bytearray:
+        """Determines the accumulator and sets status flags.
+
+        Determines accumulator based on the `operands`, and calls `set_from_register`
+        based on active accumulator. Then returns the opcode from the instruction.
+
+        """
         operands: Deque[yylex_t] = args[1]
         registers: Register_T = args[2]
-        op = func(*args, **kwargs)
+        op: bytearray = func(*args, **kwargs)
 
         # Reset status register
         registers.SR = bitarray([False] * 6)
@@ -82,11 +99,18 @@ def processing(func: types.FunctionType,
                 else:
                     set_from_register(registers.AccA, registers.SR)
         return op
+
     return set_status
 
 
 def get_addressing_mode(parser: Parser,
                         operands: Deque[yylex_t]) -> AddressingMode:
+    """Get addressing mode via instruction and operands.
+
+    Get addressing mode by running the operands through the parser combinator
+    `operand_state_machine`. In addition, the parser combinator validates and
+    verifies the semantic order of operands.
+    """
     operands = operands.copy()
     return operand_state_machine(parser, operands, [])
 
@@ -94,17 +118,27 @@ def get_addressing_mode(parser: Parser,
 def operand_state_machine(parser: Parser,
                            operands: Deque[yylex_t],
                            mode_stack: List[AddressingMode]) -> AddressingMode:
+    """Get addressing mode and validate instruction operands
+
+    Runs a parser combinator on the operands based on the amount of
+    operands for an instruction and the operand types.
+
+    Builds a stack of addressing modes by running on each n operand.
+    The final instruction addressing mode is thus determined by the n_0 operand.
+
+    By running for each operand recursively for `n-1` we validate order
+    of operands state sets and their respective type and addressing modes
+    at once.
+    """
     size: int = len(operands)
     if size > 0:
         if size > 1 and operands[1]['token'] == Token.T_COMMA:
             del operands[1]
         test = operands[0]['token']
         mode: Mode_T = match(len(operands),
-
             3,  lambda k: AddressingMode.IDX if
                     operands[0]['token'] == Register.T_X
                     else ('error', Register.T_X.name, test),
-
             2,  lambda k: match(test,
                     Token.T_IMM_UINT8,         AddressingMode.IMM,
                     Token.T_IMM_UINT16,        AddressingMode.IMM,
@@ -116,7 +150,6 @@ def operand_state_machine(parser: Parser,
                                                                    Second_Operand_States))),
                                                 test)
                 ),
-
             1,  lambda k: match(test,
                     Token.T_IMM_UINT16,       AddressingMode.IMM,
                     Token.T_DIR_ADDR_UINT8,   AddressingMode.DIR,
@@ -129,9 +162,7 @@ def operand_state_machine(parser: Parser,
                                                     First_Operand_States))),
                                                 test)
                 ),
-
             0,  lambda k: AddressingMode.INH
-
         )
         if not isinstance(mode, AddressingMode):
             parser.error(mode[1], mode[2])
