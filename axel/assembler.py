@@ -48,6 +48,10 @@ class Registers:
 
 
 class Assembler:
+    """The 6800 Assembler
+
+    A 2-pass assembler whereby the lexical analysis is the first pass.
+    """
     def __init__(self, source: str) -> None:
         self.lexer = Optional[Lexer]
         self.symbol_table: Symbol_Table = self._construct_symbol_table(

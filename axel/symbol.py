@@ -20,6 +20,12 @@ M = TypeVar('M', bound='U_Int16')
 
 
 class U_Int8:
+    """A class datatype that behaves like a unsigned 8bit integer.
+    Keeps raw numerical details for overflow and carry data.
+
+    Provides easy-to-use operators on normal numerical types
+    that lifts the result into the unsigned type.
+    """
     def __init__(self, num: int) -> None:
         self.raw = num
         self.num = num & 255
@@ -47,6 +53,11 @@ class U_Int8:
 
 
 class Int8:
+    """A class datatype that behaves like a signed 8bit integer.
+
+    Provides easy-to-use operators on normal numerical types
+    that lifts the result into the signed type with 2's complement.
+    """
     def __init__(self, num: int) -> None:
         self.num = self._to_int8(num)
 
@@ -76,6 +87,11 @@ class Int8:
 
 
 class U_Int16:
+    """A class datatype that behaves like a unsigned 18bit integer.
+
+    Provides easy-to-use operators on normal numerical types
+    that lifts the result into the unsigned type.
+    """
     def __init__(self, num: int) -> None:
         self.num = num & 65535
 
@@ -97,20 +113,26 @@ class U_Int16:
         return self
 
 
-TableField = Tuple[U_Int16, str, Union[U_Int16, str, bytes]]
+TableField_T = Tuple[U_Int16, str, Union[U_Int16, str, bytes]]
 
 
 class Symbol_Table:
+    """Assembler Symbol table.
+
+    Symbol table for 6800 program labels or variables
+    and their location in memory, type, and data.
+    """
     def __init__(self) -> None:
-        self.table: Dict[str, TableField] = {}
+        self.table: Dict[str, TableField_T] = {}
 
     def set(self,
             label: str,
             addr: U_Int16,
             type: str,
             value: Union[U_Int16, str, bytes]) -> None:
-
+        """ Set the table entry for a label or variable. """
         self.table[label] = (addr, type, value)
 
-    def get(self, label: str) -> TableField:
+    def get(self, label: str) -> TableField_T:
+        """ Get a table entry for a label or variable. """
         return self.table[label]
