@@ -13,13 +13,11 @@ The 6800 has a 16-bit address bus that can directly access 64 kB of memory and a
 
 * Fast, LL(1) of the 6800 assembly language
 * Strongly typed, with [mypy --strict](http://mypy-lang.org/)
-* Verbose errors and adept parser error recovery
 * Multipass assembler:
     * Symbol table and IR pass
     * Opcode byte translation pass
-
-
-Fully tested with robust test suite. (> 90% coverage)
+* Verbose errors and adept parser error recovery
+* Fully tested with robust test suite. ([> 90% coverage](https://travis-ci.org/jahan-addison/axel))
 
 ### Not Implemented
 
@@ -28,12 +26,17 @@ Fully tested with robust test suite. (> 90% coverage)
 
 # Development
 
+Install dependencies with [poetry](https://poetry.eustace.io/docs/pyproject/).
+
+
+Run `poetry install`.
+
 During development, run `make start` to start and run assembler on the `healthkit` program in `etc/`.
 
 ## Tests
 
 Run `make test`
 
-## License
+# License
 
 GPL-v3.0
