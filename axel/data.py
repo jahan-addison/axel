@@ -88,8 +88,7 @@ def processing(func: types.FunctionType,
         registers: Register_T = args[2]
         op: bytearray = func(*args, **kwargs)
 
-        # Reset status register
-        registers.SR = bitarray([False] * 6)
+        registers.SR = bitarray([False] * 6)  # Reset status register
 
         if len(operands) > 1 and operands[-1]['token'] in Register:
             head_op = operands[-1]['token']
