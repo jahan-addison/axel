@@ -59,6 +59,8 @@ def processing(func: types.FunctionType,
     Pre- and post-processing on opcode `Translate` methods.
     Sets statuses in the status register and resets before each
     instruction operation.
+
+    http://teaching.idallen.com/dat2343/10f/notes/040_overflow.txt
     """
 
     def set_from_register(word: U_Int8, status_register: bitarray) -> None:
@@ -67,7 +69,7 @@ def processing(func: types.FunctionType,
         Takes an accumulator and sets status register based on results.
         """
         # carry flag
-        if word.raw > 255:
+        if word.raw > 255 or word.raw < 0:
             status_register[0] = True
         # sign and overflow flag
         if word.raw < 0:

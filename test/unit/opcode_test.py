@@ -51,3 +51,16 @@ def test_opcode_aba(parser: f2_t, registers: f1_t) -> None:
     r.AccB = U_Int8(10)
     assert Translate.aba(AddressingMode.ACC, operands, r) == b'\x1b'
     assert r.AccA.num == 15
+
+
+def test_opcode_adc(parser: f2_t, registers: f1_t) -> None:
+    test = parser('ADC A #$10\n')
+    line = test.line()
+    if isinstance(line, bool):
+        raise AssertionError('line is bool')
+    instruction, operands = line
+    r = registers()
+    r.AccA = U_Int8(255)
+    assert Translate.adc(AddressingMode.IMM, operands, r) == b'\x89\x10'
+    # test carry
+    assert Translate.adc(AddressingMode.IMM, operands, r) == b'\x890'

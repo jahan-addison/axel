@@ -53,6 +53,7 @@ class Parser:
             f'but found "{found.name}" '
             f'on line {self._line}.')
 
+    @classmethod
     def parse_immediate_value(self, value: str) -> bytes:
         """Parse immediate hexadecimal values from datatypes.
 
@@ -156,7 +157,7 @@ class Parser:
                     name,
                     U_Int16(addr),
                     'variable',
-                    self.parse_immediate_value(symbol[2]))
+                    Parser.parse_immediate_value(symbol[2]))
             else:
                 raise AssemblerParserError(
                     f'Parser failed on variable "{name}"')

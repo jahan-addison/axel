@@ -69,9 +69,8 @@ def test_take(parser: f1_t, code: f3_t) -> None:
 
 
 def test_parse_immediate_value(parser: f1_t, code: f3_t) -> None:
-    test = parser(code[0], None)
-    assert test.parse_immediate_value('#$10') == b'\x10'
-    assert test.parse_immediate_value('$10') == b'\x10'
+    assert Parser.parse_immediate_value('#$10') == b'\x10'
+    assert Parser.parse_immediate_value('$10') == b'\x10'
 
 
 def test_error(parser: f1_t, code: f3_t) -> None:

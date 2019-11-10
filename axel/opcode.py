@@ -14,7 +14,9 @@
 """
 import types
 from typing import Deque, Dict, Any
+from bitarray import bitarray
 from axel.tokens import AddressingMode
+from axel.parser import Parser, AssemblerParserError
 from axel.lexer import yylex_t
 from axel.data import processing
 from axel.assembler import Registers as Register_T  # get class type
@@ -52,3 +54,26 @@ class Translate(metaclass=Processor):
         if addr_mode == AddressingMode.ACC:
             registers.AccA += registers.AccB.num
         return opcode
+
+    @staticmethod
+    def adc(addr_mode: AddressingMode,
+            operands: Deque[yylex_t],
+            registers: Register_T) -> bytearray:
+        """The ADC instruction. """
+        opcode: bytearray = bytearray()
+        data: int = 0
+        status: bitarray = registers.SR
+        o = operands[0]['data']
+        if not isinstance(o, str):
+            raise AssemblerParserError(f'Invalid instruction operand')
+        # Immediate addressing:
+        if addr_mode == AddressingMode.IMM:
+            opcode = bytearray.fromhex('89')
+            operand = int(Parser.parse_immediate_value(o).hex(), 16)
+            if status[0] is True:
+                b = bin(operand)
+                data = int('0b' + status.to01()[0] + b[2:], 2)
+            else:
+                data = int(bin(operand), 2)
+            registers.AccA += data
+        return opcode + bytearray.fromhex(hex(data)[2:])
