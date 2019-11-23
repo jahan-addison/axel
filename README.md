@@ -19,9 +19,9 @@ The 6800 has a 16-bit address bus that can directly access 64 kB of memory and a
 * Verbose errors and adept parser error recovery
 * Fully tested with robust test suite. ([> 90% coverage](https://travis-ci.org/jahan-addison/axel))
 
-I am considering designing a DSL in haskell to do the instruction -> opcode translation state machine.
-
 ### Not Yet Implemented
+
+I am considering designing a DSL compiler in haskell or C to do the instruction -> opcode translation state machine.
 
 * Interrupt flag and instructions (wont do)
 * Direct addressing opcodes
@@ -32,7 +32,7 @@ I am considering designing a DSL in haskell to do the instruction -> opcode tran
     - ☑ Lexer/Parser complete
 * DATA and rom directives
     - Needs Lexer/Parser extension
-
+* 65 of the 72 ISA opcode mnemonic translations
 
 Pull requests are welcome!
 
