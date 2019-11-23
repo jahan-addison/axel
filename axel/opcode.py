@@ -68,7 +68,8 @@ class Translate(metaclass=Processor):
             raise AssemblerParserError(f'Invalid instruction operand')
         # Immediate addressing:
         if addr_mode == AddressingMode.IMM:
-            opcode = bytearray.fromhex('89')
+            opcode = bytearray.fromhex('89') if operands[-1]['data'] == 'A' \
+                else bytearray.fromhex('C9')
             operand = int(Parser.parse_immediate_value(o).hex(), 16)
             if status[0] is True:
                 b = bin(operand)

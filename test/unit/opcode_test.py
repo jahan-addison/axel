@@ -64,3 +64,11 @@ def test_opcode_adc(parser: f2_t, registers: f1_t) -> None:
     assert Translate.adc(AddressingMode.IMM, operands, r) == b'\x89\x10'
     # test carry
     assert Translate.adc(AddressingMode.IMM, operands, r) == b'\x890'
+    test = parser('ADC B #$10\n')
+    line = test.line()
+    if isinstance(line, bool):
+        raise AssertionError('line is bool')
+    instruction, operands = line
+    r = registers()
+    r.AccB = U_Int8(0)
+    assert Translate.adc(AddressingMode.IMM, operands, r) == b'\xC9\x10'
