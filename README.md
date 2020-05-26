@@ -24,14 +24,8 @@ The 6800 has a 16-bit address bus that can directly access 64 kB of memory and a
 I am considering designing a DSL compiler in haskell or C to do the instruction -> opcode translation state machine.
 
 * Interrupt flag and instructions (wont do)
-* Direct addressing opcodes
-    - ☑ Lexer/Parser complete
-* Extended addressing mode opcodes
-    - ☑ Lexer/Parser complete
-* Indexed addressing mode opcodes
-    - ☑ Lexer/Parser complete
 * DATA and rom directives
-    - Needs Lexer/Parser extension
+    - Needs Parser extension
 * 65 of the 72 ISA opcode mnemonic translations
 
 Pull requests are welcome!
