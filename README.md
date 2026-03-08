@@ -1,7 +1,6 @@
-<h1 align="center">axel 💻</h1>
-
+<!-- <h1 align="center">axel </h1> -->
 <h5 align="center">
-  Motorola MC6800 Assembler
+  Motorola MC6800 Assembler 💻
 </h5>
 <p align="center">
    <img width="700px" src="/docs/MC6800.jpeg">

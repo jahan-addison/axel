@@ -14,6 +14,7 @@
 #pragma once
 
 #include <array>        // for array
+#include <axel/util.h>  // for AXEL_PRIVATE_UNLESS_TESTED
 #include <fmt/format.h> // for format
 #include <iterator>     // for next
 #include <numeric>      // for accumulate
@@ -24,6 +25,10 @@
 namespace axel {
 
 namespace grammar {
+
+/***************************************************************************
+ * See https://github.com/yhirose/cpp-peglib for details on grammar syntax
+ ***************************************************************************/
 
 struct rule
 {};
@@ -66,14 +71,14 @@ struct displacement : rule
 struct Register : rule
 {
     constexpr static std::string_view rule = R"(
-        REGISTER <- 'A' | 'B' | 'X' | 'PC' | 'SP' | 'SR'
+        REGISTER <- 'A' / 'B' / 'X' / 'PC' / 'SP' / 'SR'
     )";
 };
 
 struct Label : rule
 {
     constexpr static std::string_view rule = R"(
-        LABEL <- [a-zA-Z][a-zA-Z0-9]*
+        LABEL <- !MNEMONIC [a-zA-Z][a-zA-Z0-9]*
     )";
 };
 
@@ -92,84 +97,84 @@ struct Operand : rule
             data_16bit_direct /
             data_8bit_immediate /
             data_8bit_direct /
-            Displacement
+            displacement
     )";
 };
 
 struct Mnemonic : rule
 {
     constexpr static std::string_view rule = R"(
-        MNEMONIC = 'ABA' |
-        'ADC' |
-        'ADD' |
-        'AND' |
-        'ASL' |
-        'ASR' |
-        'BCC' |
-        'BCS' |
-        'BEQ' |
-        'BGE' |
-        'BGT' |
-        'BHI' |
-        'BIT' |
-        'BLE' |
-        'BLS' |
-        'BLT' |
-        'BMI' |
-        'BNE' |
-        'BPL' |
-        'BRA' |
-        'BSR' |
-        'BVC' |
-        'BVS' |
-        'CBA' |
-        'CLC' |
-        'CLI' |
-        'CLR' |
-        'CLV' |
-        'CMP' |
-        'COM' |
-        'CPX' |
-        'DAA' |
-        'DEC' |
-        'DES' |
-        'DEX' |
-        'EOR' |
-        'INC' |
-        'INS' |
-        'INX' |
-        'JMP' |
-        'JSR' |
-        'LDA' |
-        'LDS' |
-        'LDX' |
-        'LSR' |
-        'NEG' |
-        'NOP' |
-        'ORA' |
-        'PSH' |
-        'PUL' |
-        'ROL' |
-        'ROR' |
-        'RTI' |
-        'RTS' |
-        'SBA' |
-        'SBC' |
-        'SEC' |
-        'SEI' |
-        'SEV' |
-        'STA' |
-        'STS' |
-        'STX' |
-        'SUB' |
-        'SWI' |
-        'TAB' |
-        'TAP' |
-        'TBA' |
-        'TPA' |
-        'TST' |
-        'TSX' |
-        'TXS' |
+        MNEMONIC <- 'ABA' /
+        'ADC' /
+        'ADD' /
+        'AND' /
+        'ASL' /
+        'ASR' /
+        'BCC' /
+        'BCS' /
+        'BEQ' /
+        'BGE' /
+        'BGT' /
+        'BHI' /
+        'BIT' /
+        'BLE' /
+        'BLS' /
+        'BLT' /
+        'BMI' /
+        'BNE' /
+        'BPL' /
+        'BRA' /
+        'BSR' /
+        'BVC' /
+        'BVS' /
+        'CBA' /
+        'CLC' /
+        'CLI' /
+        'CLR' /
+        'CLV' /
+        'CMP' /
+        'COM' /
+        'CPX' /
+        'DAA' /
+        'DEC' /
+        'DES' /
+        'DEX' /
+        'EOR' /
+        'INC' /
+        'INS' /
+        'INX' /
+        'JMP' /
+        'JSR' /
+        'LDA' /
+        'LDS' /
+        'LDX' /
+        'LSR' /
+        'NEG' /
+        'NOP' /
+        'ORA' /
+        'PSH' /
+        'PUL' /
+        'ROL' /
+        'ROR' /
+        'RTI' /
+        'RTS' /
+        'SBA' /
+        'SBC' /
+        'SEC' /
+        'SEI' /
+        'SEV' /
+        'STA' /
+        'STS' /
+        'STX' /
+        'SUB' /
+        'SWI' /
+        'TAB' /
+        'TAP' /
+        'TBA' /
+        'TPA' /
+        'TST' /
+        'TSX' /
+        'TXS' /
         'WAI'
     )";
 };
@@ -178,41 +183,44 @@ struct Mnemonic : rule
 
 struct Grammar
 {
-    std::string operator()()
+    std::string operator()() const
     {
-        std::string grammer_rules = std::accumulate(std::next(rules.begin()),
-            rules.end(),
-            std::string(rules[0]),
-            [](std::string a, std::string_view b) {
-                return std::move(a) + " / " + std::string(b);
-            });
         return fmt::format(R"(
-            Instruction <- LABEL? MNEMONIC Operands?
+        Instruction <- LABEL? MNEMONIC OPERANDS?
 
-            # Rule Expansion
-            {}
+        # Rule Expansion
+        {}
 
-            Comment     <- ';' [^\n]*
-            Ignore      <- ( [ \t\r\n] / Comment )*
+        Comment     <- ';' [^\n]*
+        Ignore      <- ( [ \t\r\n] / Comment )*
 
-            %whitespace <- Ignore
+        %whitespace <- Ignore
         )",
-            grammer_rules);
+            rule_expansion());
     }
-
-  private:
     // clang-format off
-    const std::array<std::string_view, 9> rules = {
-        Mnemonic::rule,
+    AXEL_PRIVATE_UNLESS_TESTED:
+    std::string rule_expansion() const
+    {
+        return std::accumulate(std::next(rules.begin()),
+            rules.end(),
+            "    " + std::string(rules[0]),
+            [](std::string a, std::string_view b) {
+                if (b.empty())
+                    return a;
+                return std::move(a) + "\n    " + std::string(b);
+            });
+    }
+    const std::array<std::string_view, 10> rules = { Mnemonic::rule,
         Operands::rule,
         Label::rule,
         Operand::rule,
         data_16bit_immediate::rule,
         data_16bit_direct::rule,
+        Register::rule,
         data_8bit_immediate::rule,
         data_8bit_direct::rule,
-        displacement::rule
-    };
+        displacement::rule };
     // clang-format on
 };
 

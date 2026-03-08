@@ -11,16 +11,20 @@
  * for the full text of these licenses.
  ****************************************************************************/
 
-#include <doctest/doctest.h> // for filloss, ResultBuilder, toStream, toSt...
+#pragma once
 
-#include <axel/hello.h> // for Greeter
-#include <string>       // for basic_string
-#include <string_view>  // for basic_string_view
+#define STRINGIFY2(X) #X
+#define STRINGIFY(X) STRINGIFY2(X)
 
-TEST_CASE("hello.cc: Greeter::greet")
-{
-    auto test = axel::Greeter{};
-    CHECK_EQ(test.greet("Bob"), "Hello, Bob!");
-    CHECK_EQ(test.greet("Sarah"), "Howdy, Sarah!");
-    CHECK_EQ(test.greet("John"), "Hi, John!");
-}
+#define WIDE_AND_STRINGIFY(x) L##x
+#define WIDE_STRINGIFY(x) WIDE_AND_STRINGIFY(x)
+
+#define AXEL_PUBLIC public
+#ifdef AXEL_TEST
+#define AXEL_PRIVATE_UNLESS_TESTED public
+#define AXEL_PROTECTED_UNLESS_TESTED public
+
+#else
+#define AXEL_PRIVATE_UNLESS_TESTED private
+#define AXEL_PROTECTED_UNLESS_TESTED protected
+#endif

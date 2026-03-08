@@ -25,6 +25,7 @@ Parser::Instructions Parser::parse(std::string_view assembly)
     auto parser = peg::parser(grammar_());
     assert(static_cast<bool>(parser) == true);
     parser.parse(assembly);
+    fmt::println("grammar: {}", grammar_());
     return instructions_;
 }
 
