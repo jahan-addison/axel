@@ -1,0 +1,24 @@
+// Just a report of how many checkers are run
+checkersReport
+
+// This just warns that cppcheck isn't exhaustive and it still appears in exhaustive mode
+normalCheckLevelMaxBranches
+
+useInitializationList
+
+// Causes false positives
+unusedStructMember
+functionStatic
+derefInvalidIteratorRedundantCheck
+
+// matchit causes issues with cppcheck
+syntaxError
+
+// libpython uses this a lot, unfortunately
+cstyleCast
+
+// ignore dependencies
+// Use ** to match path separators (folders) for Cppcheck 2.18+
+*:*/**test**
+*:*/**cpm_modules**
+*:*/**_deps**

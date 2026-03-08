@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "includePath": [
+                "${default}",
+                "${workspaceFolder}/**",
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/c++",
+            "intelliSenseMode": "${default}",
+            "compileCommands": [
+                "${workspaceFolder}/build/compile_commands.json"
+            ]
+        }
+    ],
+    "version": 4
+}

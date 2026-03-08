@@ -1,0 +1,31 @@
+/*****************************************************************************
+ * Copyright (c) Jahan Addison
+ *
+ * This software is dual-licensed under the Apache License, Version 2.0 or
+ * the GNU General Public License, Version 3.0 or later.
+ *
+ * You may use this work, in part or in whole, under the terms of either
+ * license.
+ *
+ * See the LICENSE.Apache-v2 and LICENSE.GPL-v3 files in the project root
+ * for the full text of these licenses.
+ ****************************************************************************/
+
+#include <axel/parser.h>
+
+#include <assert.h>       // for assert
+#include <axel/grammar.h> // for Grammar
+#include <peglib.h>       // for parser
+#include <string>         // for basic_string, char_traits
+
+namespace axel {
+
+Parser::Instructions Parser::parse(std::string_view assembly)
+{
+    auto parser = peg::parser(grammar_());
+    assert(static_cast<bool>(parser) == true);
+    parser.parse(assembly);
+    return instructions_;
+}
+
+} // namespace axel

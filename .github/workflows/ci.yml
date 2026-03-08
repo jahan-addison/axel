@@ -1,0 +1,116 @@
+name: CI
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: ${{ matrix.platform.name }} / ${{ matrix.compiler }}
+    runs-on: ${{ matrix.platform.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # x86_64 Linux
+          - platform: { name: "x86_64 Linux", os: ubuntu-latest, arch: x86_64 }
+            compiler: g++
+            cxx: g++
+          - platform: { name: "x86_64 Linux", os: ubuntu-latest, arch: x86_64 }
+            compiler: clang++
+            cxx: clang++
+          # x86_64 macOS
+          - platform: { name: "x86_64 macOS", os: macos-latest, arch: x86_64 }
+            compiler: clang++
+            cxx: clang++
+          # ARM64 macOS
+          - platform: { name: "ARM64 macOS", os: macos-latest, arch: arm64 }
+            compiler: clang++
+            cxx: clang++
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+
+      - name: cmake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '4.x.x'
+
+      - name: setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: install extras linux
+        if: matrix.platform.name == 'x86_64 Linux' && matrix.compiler == 'g++'
+        run: |
+          sudo apt-get install -y valgrind
+
+      - name: install extras macos
+        if: |
+          matrix.platform.name == 'x86_64 macOS' &&
+          matrix.compiler == 'clang++'
+        run: |
+          brew install llvm@20 lcov
+          export PATH="/opt/homebrew/opt/llvm@20/bin:/opt/homebrew/bin:/opt/homebrew/opt/llvm/bin:$HOME/.local/bin:$PATH"
+
+          llvm-cov --version
+          llvm-profdata --version
+
+      - name: configure build
+        run: |
+          SANDFLAGS=""
+          COVERAGE=""
+          if [[ "${{ matrix.compiler }}" == "clang++" ]]; then
+            SANDFLAGS="-DUSE_SANITIZER=Address;Undefined"
+            if [[ "${{ matrix.platform.name }}" == "x86_64 macOS" ]]; then
+              COVERAGE="-DENABLE_TEST_COVERAGE=ON"
+              export CMAKE_PREFIX_PATH="/opt/homebrew/opt/llvm@20"
+            fi
+          fi
+          cmake -Bbuild -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DIWYU=OFF -DCMAKE_BUILD_TYPE=Debug $SANDFLAGS $COVERAGE -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+      - name: build
+        run: cmake --build build
+
+      - name: test
+        run: |
+          ./build/test_suite
+
+      - name: memcheck
+        if: matrix.platform.name == 'x86_64 Linux' && matrix.compiler == 'g++'
+        run: |
+          valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./build/test_suite
+
+      # Coverage analysis:
+
+      # - name: build coverage
+      #   if: |
+      #     github.ref == 'refs/heads/master' &&
+      #     matrix.platform.name == 'x86_64 macOS' &&
+      #     matrix.compiler == 'clang++'
+      #   run: |
+      #     cmake --build build
+      #     cmake --build build --target coverage
+
+      # - name: deploy
+      #   uses: peaceiris/actions-gh-pages@v4
+      #   if: |
+      #     github.ref == 'refs/heads/master' &&
+      #     matrix.platform.name == 'x86_64 macOS' &&
+      #     matrix.compiler == 'clang++'
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     publish_dir: ./build/coverage_report
+      #     publish_branch: gh-pages
+      #     force_orphan: true
