@@ -5,7 +5,9 @@
 int main()
 {
     auto test_program = R"(
-        START	JSR REDIS	; SET UP FIRST DISPLAY ADDRESS
+        REDIS	= $FE3A
+        START:
+        JSR REDIS	; SET UP FIRST DISPLAY ADDRESS
 	    LDA A #$01	; FIRST SEGMENT CODE
 	    BRA OUT
     )";

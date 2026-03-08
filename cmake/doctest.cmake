@@ -22,6 +22,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   target_compile_options(
     Test_Suite
     PUBLIC -DROOT_TEST_PATH=${CMAKE_CURRENT_SOURCE_DIR}
+           -DROOT_TEST_PATH=${CMAKE_CURRENT_SOURCE_DIR}
            -DDEBUG
            -DAXEL_TEST
            -Wall
