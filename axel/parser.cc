@@ -23,9 +23,16 @@ namespace axel {
 Parser::Instructions Parser::parse(std::string_view assembly)
 {
     auto parser = peg::parser(grammar_());
-    assert(static_cast<bool>(parser) == true);
+    // fmt::println("Grammar: {}", grammar_());
+    parser.set_logger(
+        [&](std::size_t line, std::size_t col, std::string const& msg
+            /*, std::string const& rule*/) {
+            /*fmt::println("Rule: {}", rule);*/
+            throw Parser_Error(line, col, msg);
+        });
+
+    parser.enable_packrat_parsing();
     parser.parse(assembly);
-    fmt::println("grammar: {}", grammar_());
     return instructions_;
 }
 

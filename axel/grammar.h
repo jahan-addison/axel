@@ -63,6 +63,13 @@ struct octal_immediate_16bit : rule
     )";
 };
 
+struct alpha_numeric_identifier : rule
+{
+    constexpr static rule_t rule = R"(
+        identifier <- < [a-zA-Z][a-zA-Z0-9]* >
+    )";
+};
+
 struct data_16bit_immediate : rule
 {
     constexpr static rule_t rule = R"(
@@ -91,57 +98,50 @@ struct data_8bit_direct : rule
     )";
 };
 
-struct displacement : rule
-{
-    constexpr static rule_t rule = R"(
-        displacement <- [a-zA-Z][a-zA-Z0-9]*
-    )";
-};
-
 struct Register : rule
 {
     constexpr static rule_t rule = R"(
-        REGISTER <- 'A' / 'B' / 'X' / 'PC' / 'SP' / 'SR'
+        Register <- 'A' / 'B' / 'X' / 'PC' / 'SP' / 'SR'
     )";
 };
 
 struct Label : rule
 {
     constexpr static rule_t rule = R"(
-        LABEL <- [a-zA-Z][a-zA-Z0-9]* ':'
+        Label <- identifier ':'
     )";
 };
 
 struct Variable : rule
 {
     constexpr static rule_t rule = R"(
-        VARIABLE <- [a-zA-Z][a-zA-Z0-9]* '=' data_16bit_direct
+        Variable <- identifier '=' data_16bit_direct
     )";
 };
 
 struct Operands : rule
 {
     constexpr static rule_t rule = R"(
-        OPERANDS <- OPERAND (',' OPERAND)*
+        Operands <- Operand (',' Operand)*
     )";
 };
 
 struct Operand : rule
 {
     constexpr static rule_t rule = R"(
-        OPERAND <- data_16bit_immediate /
-            REGISTER /
+        Operand <- data_16bit_immediate /
+            Register /
             data_16bit_direct /
             data_8bit_immediate /
             data_8bit_direct /
-            displacement
+            identifier
     )";
 };
 
 struct Mnemonic : rule
 {
     constexpr static rule_t rule = R"(
-        MNEMONIC <- 'ABA' /
+        Mnemonic <- 'ABA' /
         'ADC' /
         'ADD' /
         'AND' /
@@ -221,15 +221,16 @@ struct Grammar
     std::string operator()(bool test = false) const
     {
         return fmt::format(R"(
-        Instruction <- LABEL? MNEMONIC OPERANDS?
+        Start <- Instruction*
+        Instruction <- Variable / Label / (Mnemonic Operands?)
 
         # Rule Expansion
+
         {}
 
-        Comment     <- ';' [^\n]*
-        Ignore      <- ( [ \t\r\n] / Comment )*
-
-        %whitespace <- Ignore
+        %word <- identifier
+        %whitespace <- ( [\s] / comment )*
+        comment     <- ';' [^\n]*
         )",
             rule_expansion(test));
     }
@@ -279,9 +280,9 @@ struct Grammar
         data_16bit_direct::rule,
         data_8bit_immediate::rule,
         data_8bit_direct::rule,
-        displacement::rule,
         hex_immediate_8bit::rule,
         octal_immediate_8bit::rule,
+        alpha_numeric_identifier::rule,
         hex_immediate_16bit::rule,
         octal_immediate_16bit::rule };
 };

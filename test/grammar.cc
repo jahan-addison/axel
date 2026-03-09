@@ -21,8 +21,8 @@ TEST_CASE("grammar: grammar expansion")
     auto grammar = axel::grammar::Grammar{};
 
     REQUIRE(grammar.rule_expansion(true) ==
-            "MNEMONIC VARIABLE OPERANDS LABEL OPERAND REGISTER "
+            "Mnemonic Variable Operands Label Operand Register "
             "data_16bit_immediate data_16bit_direct data_8bit_immediate "
-            "data_8bit_direct displacement hex_immediate_8bit "
-            "octal_immediate_8bit hex_immediate_16bit octal_immediate_16bit");
+            "data_8bit_direct hex_immediate_8bit octal_immediate_8bit "
+            "identifier hex_immediate_16bit octal_immediate_16bit");
 }

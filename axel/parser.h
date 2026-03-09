@@ -14,21 +14,51 @@
 #pragma once
 
 #include <axel/grammar.h> // for Grammar
+#include <axel/map.h>     // for Ordered_Map
 #include <deque>          // for deque
+#include <stdexcept>      // for runtime_error
 #include <string>         // for basic_string, string
 #include <string_view>    // for string_view
 #include <utility>        // for move
 namespace peg {
 class parser;
-} // lines 21-21
+}
 
 namespace axel {
+
+namespace detail {
 
 struct Instruction
 {
     std::string mnemonic;
     std::string addressing_mode;
     std::deque<std::string> operands;
+};
+
+struct Symbol
+{
+    enum class Type
+    {
+        Variable,
+        Label
+    };
+    std::string value;
+    Type type;
+    int8_t line;
+};
+
+} // namespace detail
+
+class Parser_Error : public std::runtime_error
+{
+  public:
+    Parser_Error(std::size_t line, std::size_t col, std::string const& message)
+        : std::runtime_error(fmt::format("Syntax Error - Line {}, col {}\n  {}",
+              line,
+              col,
+              message))
+    {
+    }
 };
 
 class Parser
@@ -43,13 +73,16 @@ class Parser
     }
 
   public:
-    using Instructions = std::deque<Instruction>;
+    using Instructions = std::deque<detail::Instruction>;
+    using Symbols = Ordered_Map<std::string, detail::Symbol>;
 
   public:
     Instructions parse(std::string_view assembly);
+    Symbols& symbol_table() const;
 
   private:
     void from_label(peg::parser& parser);
+    void from_variable(peg::parser& parser);
     void from_mnemonic(peg::parser& parser);
     void from_operands(peg::parser& parser);
     void from_operand(peg::parser& parser);
@@ -57,6 +90,7 @@ class Parser
   private:
     Instructions instructions_{};
     grammar::Grammar grammar_;
+    Symbols symbols_{};
 };
 
 } // namespace axel

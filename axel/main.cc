@@ -5,10 +5,10 @@
 int main()
 {
     auto test_program = R"(
-        REDIS	= $FE3A
+        REDIS   = $FE3A
         START:
-        JSR REDIS	; SET UP FIRST DISPLAY ADDRESS
-	    LDA A #$01	; FIRST SEGMENT CODE
+        JSR REDIS
+	    LDA A #$01
 	    BRA OUT
     )";
     auto parser = axel::Parser{ axel::grammar::MC6800_GRAMMAR };
