@@ -26,7 +26,7 @@
  *
  *****************************************************************************/
 
-namespace axel {
+namespace lionheart {
 
 template<typename Key, typename Value>
 class Ordered_Map
@@ -127,4 +127,4 @@ class Ordered_Map
     std::map<Key, std::size_t> key_to_index;
 };
 
-} // namespace axel
+} // namespace lionheart

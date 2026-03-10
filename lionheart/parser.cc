@@ -11,14 +11,14 @@
  * for the full text of these licenses.
  ****************************************************************************/
 
-#include <axel/parser.h>
+#include <lionheart/parser.h>
 
-#include <assert.h>       // for assert
-#include <axel/grammar.h> // for Grammar
-#include <peglib.h>       // for parser
-#include <string>         // for basic_string, char_traits
+#include <assert.h>            // for assert
+#include <lionheart/grammar.h> // for Grammar
+#include <peglib.h>            // for parser
+#include <string>              // for basic_string, char_traits
 
-namespace axel {
+namespace lionheart {
 
 Parser::Instructions Parser::parse(std::string_view assembly)
 {
@@ -36,4 +36,4 @@ Parser::Instructions Parser::parse(std::string_view assembly)
     return instructions_;
 }
 
-} // namespace axel
+} // namespace lionheart

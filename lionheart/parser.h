@@ -13,18 +13,18 @@
 
 #pragma once
 
-#include <axel/grammar.h> // for Grammar
-#include <axel/map.h>     // for Ordered_Map
-#include <deque>          // for deque
-#include <stdexcept>      // for runtime_error
-#include <string>         // for basic_string, string
-#include <string_view>    // for string_view
-#include <utility>        // for move
+#include <deque>               // for deque
+#include <lionheart/grammar.h> // for Grammar
+#include <lionheart/map.h>     // for Ordered_Map
+#include <stdexcept>           // for runtime_error
+#include <string>              // for basic_string, string
+#include <string_view>         // for string_view
+#include <utility>             // for move
 namespace peg {
 class parser;
 }
 
-namespace axel {
+namespace lionheart {
 
 namespace detail {
 
@@ -93,4 +93,4 @@ class Parser
     Symbols symbols_{};
 };
 
-} // namespace axel
+} // namespace lionheart

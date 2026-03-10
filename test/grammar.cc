@@ -13,15 +13,15 @@
 
 #include <doctest/doctest.h> // for TestCase, ResultBuilder, REQUIRE, TEST_...
 
-#include <axel/grammar.h> // for Grammar
-#include <string>         // for basic_string
+#include <lionheart/grammar.h> // for Grammar
+#include <string>              // for basic_string
 
 TEST_CASE("grammar: grammar expansion")
 {
-    auto grammar = axel::grammar::Grammar{};
+    auto grammar = lionheart::grammar::Grammar{};
 
     REQUIRE(grammar.rule_expansion(true) ==
-            "Mnemonic Variable Operands Label Operand Register "
+            "Mnemonic Variable Label Accumulator indexed_address "
             "data_16bit_immediate data_16bit_direct data_8bit_immediate "
             "data_8bit_direct hex_immediate_8bit octal_immediate_8bit "
             "identifier hex_immediate_16bit octal_immediate_16bit");

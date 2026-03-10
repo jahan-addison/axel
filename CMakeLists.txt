@@ -10,7 +10,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
 endif()
 
 project(
-  axel
+  lionheart
   VERSION 0.0.1
   LANGUAGES CXX)
 
