@@ -13,27 +13,65 @@
 
 #include <lionheart/parser.h>
 
-#include <assert.h>            // for assert
+#include <lionheart/parser.h>
+
+#include <fmt/base.h>          // for println
+#include <functional>          // for function
 #include <lionheart/grammar.h> // for Grammar
-#include <peglib.h>            // for parser
-#include <string>              // for basic_string, char_traits
+#include <lionheart/util.h>    // for get_boundary_substr
+#include <peglib.h>            // for parser, Action, Definition, SemanticV...
+#include <string>              // for basic_string, char_traits, string
 
 namespace lionheart {
 
 Parser::Instructions Parser::parse(std::string_view assembly)
 {
-    auto parser = peg::parser(grammar_());
+    pegparser_ = peg::parser();
     // fmt::println("Grammar: {}", grammar_());
-    parser.set_logger(
+    pegparser_.set_logger(
         [&](std::size_t line, std::size_t col, std::string const& msg
             /*, std::string const& rule*/) {
             /*fmt::println("Rule: {}", rule);*/
             throw Parser_Error(line, col, msg);
         });
+    auto test = pegparser_.load_grammar(grammar_());
+    if (!test)
+        throw Parser_Error(0, 0, "Bad grammar");
 
-    parser.enable_packrat_parsing();
-    parser.parse(assembly);
+    pegparser_.enable_packrat_parsing();
+    from_variable();
+    from_label();
+    pegparser_.parse(assembly);
     return instructions_;
+}
+
+void Parser::from_label()
+{
+    pegparser_["Label"] = [&](peg::SemanticValues const& vs) {
+        auto token =
+            std::string{ vs.token().substr(0, vs.token().length() - 1) };
+        detail::Symbol symbol = { .value = token,
+            .type = detail::Symbol::Type::Label,
+            .line = vs.line_info().first };
+
+        symbols_.emplace(token, symbol);
+    };
+}
+
+void Parser::from_variable()
+{
+    pegparser_["Variable"] = [&](peg::SemanticValues const& vs) {
+        std::string token = vs.token().data();
+        auto symbol_name = util::get_boundary_substr(token);
+        auto symbol_value = util::get_boundary_substr(
+            token.substr(token.find_first_of("=") + 1));
+
+        detail::Symbol symbol = { .value = symbol_value,
+            .type = detail::Symbol::Type::Variable,
+            .line = vs.line_info().first };
+
+        symbols_.emplace(symbol_name, symbol);
+    };
 }
 
 } // namespace lionheart

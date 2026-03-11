@@ -52,6 +52,16 @@ class Ordered_Map
             data[key_to_index[key]].second = value;
         }
     }
+    constexpr void emplace(Key const& key, Value const& value)
+    {
+        if (key_to_index.find(key) == key_to_index.end()) {
+            data.emplace_back(key, value);
+            key_to_index[key] = data.size() - 1;
+        } else {
+            data[key_to_index[key]].second = value;
+        }
+    }
+
     constexpr Value& operator[](Key const& key)
     {
         if (!contains(key)) {

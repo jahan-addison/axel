@@ -16,13 +16,11 @@
 #include <deque>               // for deque
 #include <lionheart/grammar.h> // for Grammar
 #include <lionheart/map.h>     // for Ordered_Map
+#include <peglib.h>            // for parser
 #include <stdexcept>           // for runtime_error
 #include <string>              // for basic_string, string
 #include <string_view>         // for string_view
 #include <utility>             // for move
-namespace peg {
-class parser;
-}
 
 namespace lionheart {
 
@@ -44,7 +42,7 @@ struct Symbol
     };
     std::string value;
     Type type;
-    int8_t line;
+    std::size_t line;
 };
 
 } // namespace detail
@@ -53,10 +51,8 @@ class Parser_Error : public std::runtime_error
 {
   public:
     Parser_Error(std::size_t line, std::size_t col, std::string const& message)
-        : std::runtime_error(fmt::format("Syntax Error - Line {}, col {}\n  {}",
-              line,
-              col,
-              message))
+        : std::runtime_error(
+              fmt::format("\n>>> Line {}:{} - {}", line, col, message))
     {
     }
 };
@@ -78,19 +74,22 @@ class Parser
 
   public:
     Instructions parse(std::string_view assembly);
-    Symbols& symbol_table() const;
+
+  public:
+    inline Symbols& symbol_table() { return symbols_; }
+
+    // clang-format off
+  PRIVATE_UNLESS_TESTED:
+    void from_variable();
+    void from_label();
+    void from_mnemonic();
 
   private:
-    void from_label(peg::parser& parser);
-    void from_variable(peg::parser& parser);
-    void from_mnemonic(peg::parser& parser);
-    void from_operands(peg::parser& parser);
-    void from_operand(peg::parser& parser);
-
-  private:
+    // clang-format on
     Instructions instructions_{};
     grammar::Grammar grammar_;
     Symbols symbols_{};
+    peg::parser pegparser_{};
 };
 
 } // namespace lionheart

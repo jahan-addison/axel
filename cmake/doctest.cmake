@@ -24,7 +24,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     PUBLIC -DROOT_TEST_PATH=${CMAKE_CURRENT_SOURCE_DIR}
            -DROOT_TEST_PATH=${CMAKE_CURRENT_SOURCE_DIR}
            -DDEBUG
-           -DAXEL_TEST
+           -DLIONHEART_TEST
            -Wall
            -Wpedantic
            -Wextra

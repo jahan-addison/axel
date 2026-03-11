@@ -13,18 +13,37 @@
 
 #pragma once
 
+#include <string> // for basic_string, string
+
 #define STRINGIFY2(X) #X
 #define STRINGIFY(X) STRINGIFY2(X)
 
 #define WIDE_AND_STRINGIFY(x) L##x
 #define WIDE_STRINGIFY(x) WIDE_AND_STRINGIFY(x)
 
-#define AXEL_PUBLIC public
-#ifdef AXEL_TEST
-#define AXEL_PRIVATE_UNLESS_TESTED public
-#define AXEL_PROTECTED_UNLESS_TESTED public
+#define LIONHEART_PUBLIC public
+#ifdef LIONHEART_TEST
+#define PRIVATE_UNLESS_TESTED public
+#define PROTECTED_UNLESS_TESTED public
 
 #else
-#define AXEL_PRIVATE_UNLESS_TESTED private
-#define AXEL_PROTECTED_UNLESS_TESTED protected
+#define PRIVATE_UNLESS_TESTED private
+#define PROTECTED_UNLESS_TESTED protected
 #endif
+
+namespace lionheart::util {
+
+constexpr std::string get_boundary_substr(std::string const& token,
+    std::string const& search = " \t\r\n\v\f")
+{
+    size_t start = token.find_first_not_of(search);
+    if (start == std::string_view::npos)
+        return {};
+    size_t end = token.find_first_of(search, start);
+    if (end == std::string_view::npos) {
+        return token.substr(start);
+    }
+    return token.substr(start, end - start);
+}
+
+} // namespace util
