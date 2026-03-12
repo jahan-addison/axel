@@ -30,7 +30,7 @@
 
 namespace lionheart {
 
-Parser::Instructions Parser::parse(std::string_view assembly)
+Instructions Parser::parse(std::string_view assembly)
 {
     pegparser_ = peg::parser();
     pegparser_.set_logger(

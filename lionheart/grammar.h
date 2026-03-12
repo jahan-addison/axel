@@ -27,6 +27,8 @@ constexpr grammar_t MC6800_GRAMMAR = R"(
         Start <- Instruction*
         Instruction <- Variable / Label / Mnemonic
 
+        # Note: ORG and FDB are program directives
+
         Mnemonic <-
             Inherent('ABA') / AccSrc8('ADC') / AccSrc8('ADD') / AccSrc8('AND') / Unary8('ASL') / Unary8('ASR') /
             Branch('BCC') / Branch('BCS') / Branch('BEQ') / Branch('BGE') / Branch('BGT') / Branch('BHI') /
@@ -40,6 +42,8 @@ constexpr grammar_t MC6800_GRAMMAR = R"(
             Inherent('SBA') / AccSrc8('SBC') / Inherent('SEC') / Inherent('SEI') / Inherent('SEV') / AccStore('STA') /
             Store('STS') / Store('STX') / AccSrc8('SUB') / Inherent('SWI') / Inherent('TAB') / Inherent('TAP') /
             Inherent('TBA') / Inherent('TPA') / Unary8('TST') / Inherent('TSX') / Inherent('TXS') / Inherent('WAI')
+                / Wide('ORG')
+                / Wide('FDB')
 
         Inherent(op) <- < op >
 

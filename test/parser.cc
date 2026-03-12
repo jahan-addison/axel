@@ -11,10 +11,11 @@
  * for the full text of these licenses.
  ****************************************************************************/
 
-#include <doctest/doctest.h> // for ResultBuilder, TestCase, filloss, toS...
+#include <doctest/doctest.h> // for ResultBuilder, REQUIRE, filloss, toSt...
 
-#include <lionheart/grammar.h> // for Grammar, MC6800_GRAMMAR
-#include <lionheart/parser.h>  // for Parser, Symbol
+#include <lionheart/grammar.h> // for MC6800_GRAMMAR
+#include <lionheart/parser.h>  // for Parser
+#include <lionheart/symbol.h>  // for Instruction, Symbol, Mnemonic, Mode
 #include <string>              // for basic_string
 #include <string_view>         // for basic_string_view
 
@@ -64,6 +65,7 @@ TEST_CASE("Parser: Mnemonic")
 {
     using namespace lionheart;
     auto test = R"(
+        ORG $F000
         REDIS   = $FE3A
         JSR REDIS
 	    LDA A #$01
@@ -73,33 +75,39 @@ TEST_CASE("Parser: Mnemonic")
     )";
     auto parser = Parser{ grammar::MC6800_GRAMMAR };
     auto& instructions = parser.instructions();
+
     REQUIRE_NOTHROW(parser.parse(test));
-    REQUIRE_EQ(instructions.size(), 5);
+    REQUIRE_EQ(instructions.size(), 6);
 
-    REQUIRE(instructions.at(0).mnemonic == symbol::Mnemonic::JSR);
-    REQUIRE(instructions.at(1).mnemonic == symbol::Mnemonic::LDA);
-    REQUIRE(instructions.at(2).mnemonic == symbol::Mnemonic::BRA);
-    REQUIRE(instructions.at(3).mnemonic == symbol::Mnemonic::TAB);
-    REQUIRE(instructions.at(4).mnemonic == symbol::Mnemonic::TST);
+    REQUIRE(instructions.at(0).mnemonic == symbol::Mnemonic::ORG);
+    REQUIRE(instructions.at(1).mnemonic == symbol::Mnemonic::JSR);
+    REQUIRE(instructions.at(2).mnemonic == symbol::Mnemonic::LDA);
+    REQUIRE(instructions.at(3).mnemonic == symbol::Mnemonic::BRA);
+    REQUIRE(instructions.at(4).mnemonic == symbol::Mnemonic::TAB);
+    REQUIRE(instructions.at(5).mnemonic == symbol::Mnemonic::TST);
 
-    REQUIRE(instructions.at(0).mode == symbol::Mode::Jump);
-    REQUIRE(instructions.at(1).mode == symbol::Mode::AccSrc8);
-    REQUIRE(instructions.at(2).mode == symbol::Mode::Branch);
-    REQUIRE(instructions.at(3).mode == symbol::Mode::Inherent);
-    REQUIRE(instructions.at(4).mode == symbol::Mode::Unary8);
+    REQUIRE(instructions.at(0).mode == symbol::Mode::Wide);
+    REQUIRE(instructions.at(1).mode == symbol::Mode::Jump);
+    REQUIRE(instructions.at(2).mode == symbol::Mode::AccSrc8);
+    REQUIRE(instructions.at(3).mode == symbol::Mode::Branch);
+    REQUIRE(instructions.at(4).mode == symbol::Mode::Inherent);
+    REQUIRE(instructions.at(5).mode == symbol::Mode::Unary8);
 
     REQUIRE(instructions.at(0).operands.size() == 1);
-    REQUIRE(instructions.at(0).operands.front() == "REDIS");
+    REQUIRE(instructions.at(0).operands.front() == "$F000");
 
-    REQUIRE(instructions.at(1).operands.size() == 2);
-    REQUIRE(instructions.at(1).operands.front() == "A");
-    REQUIRE(instructions.at(1).operands.back() == "#$01");
+    REQUIRE(instructions.at(1).operands.size() == 1);
+    REQUIRE(instructions.at(1).operands.front() == "REDIS");
 
-    REQUIRE(instructions.at(2).operands.size() == 1);
-    REQUIRE(instructions.at(2).operands.front() == "OUT");
+    REQUIRE(instructions.at(2).operands.size() == 2);
+    REQUIRE(instructions.at(2).operands.front() == "A");
+    REQUIRE(instructions.at(2).operands.back() == "#$01");
 
-    REQUIRE(instructions.at(3).operands.size() == 0);
+    REQUIRE(instructions.at(3).operands.size() == 1);
+    REQUIRE(instructions.at(3).operands.front() == "OUT");
 
-    REQUIRE(instructions.at(4).operands.size() == 1);
-    REQUIRE(instructions.at(4).operands.front() == "B");
+    REQUIRE(instructions.at(4).operands.size() == 0);
+
+    REQUIRE(instructions.at(5).operands.size() == 1);
+    REQUIRE(instructions.at(5).operands.front() == "B");
 }

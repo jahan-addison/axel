@@ -28,9 +28,8 @@
 
 namespace lionheart {
 
-namespace symbol {
-
-} // namespace symbol
+using Instructions = std::deque<symbol::Instruction>;
+using Symbols = Ordered_Map<std::string, symbol::Symbol>;
 
 class Parser_Error : public std::runtime_error
 {
@@ -52,8 +51,6 @@ class Parser
         : grammar_(grammar)
     {
     }
-    using Instructions = std::deque<symbol::Instruction>;
-    using Symbols = Ordered_Map<std::string, symbol::Symbol>;
 
   public:
     Instructions parse(std::string_view assembly);

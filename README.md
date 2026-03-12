@@ -16,9 +16,11 @@ The MC6800 ("sixty-eight hundred") is an 8-bit microprocessor designed and first
 
 The MC6800 has a 16-bit address bus that can directly access 64 kB of memory and an 8-bit bi-directional data bus. It has 72 instructions with seven addressing modes for a total of 197 opcodes. The original MC6800 could have a clock frequency of up to 1 MHz. Later versions had a maximum clock frequency of 2 MHz.
 
-## Assembler Design
+## Assembler
 
-* Extendable, easy to follow PEG grammar with [cpp-peglib](https://github.com/yhirose/cpp-peglib)
+* Great error handling, easy-to-extend parsing with [cpp-peglib](https://github.com/yhirose/cpp-peglib)
+* `ORG` mnemonic to set program counter, set to address `$F000` if omitted
+* `FDB` mnemonic to set interrupt and reset vectors
 * Multi-pass:
   * Symbol table and IR pass
   * Opcode byte translation pass

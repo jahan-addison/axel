@@ -11,11 +11,10 @@
  * for the full text of these licenses.
  ****************************************************************************/
 
-#include <array>            // for array
-#include <deque>            // for deque
-#include <lionheart/util.h> // for sv
-#include <matchit.h>        // for match
-#include <string>           // for basic_string
+#include <array>     // for array
+#include <deque>     // for deque
+#include <matchit.h> // for match
+#include <string>    // for basic_string
 
 #define MNEMONIC_EXPANSION(x)                  \
     []() -> lionheart::symbol::Mnemonic {      \
@@ -27,6 +26,11 @@
 namespace lionheart::symbol {
 
 using Operands = std::deque<std::string>;
+
+struct PC
+{
+    u_int16_t location{ 0 };
+};
 
 struct Symbol
 {
@@ -40,6 +44,12 @@ struct Symbol
     std::size_t line;
 };
 
+/**
+ * @brief
+ * Relative mode:
+ *  Signed two's complement, msb = 1 for negative jump
+ *    * -126 to +129 byte limit
+ */
 enum class Mode
 {
     Inherent,
@@ -126,7 +136,10 @@ enum class Mnemonic
     TST,
     TSX,
     TXS,
-    WAI
+    WAI,
+
+    ORG,
+    FDB
 };
 
 constexpr Mnemonic mnemonic_string_index(std::string_view mnemonic)
@@ -203,14 +216,17 @@ constexpr Mnemonic mnemonic_string_index(std::string_view mnemonic)
         m::pattern | "TST" = MNEMONIC_EXPANSION(TST),
         m::pattern | "TSX" = MNEMONIC_EXPANSION(TSX),
         m::pattern | "TXS" = MNEMONIC_EXPANSION(TXS),
-        m::pattern | "WAI" = MNEMONIC_EXPANSION(WAI));
+        m::pattern | "WAI" = MNEMONIC_EXPANSION(WAI),
+        m::pattern | "ORG" = MNEMONIC_EXPANSION(ORG),
+        m::pattern | "FDB" = MNEMONIC_EXPANSION(ORG));
 }
 
 /************************************************************************
- * This enables syntax-directed translation on a single mnemonic action *
+ * Per-Instruction address modes
+ *  This enables syntax-directed translation on a single mnemonic action
  ************************************************************************/
 
-constexpr std::array<Mode, 72> addressing_mode = {
+constexpr std::array<Mode, 74> addressing_mode = {
     Mode::Inherent, // ABA
     Mode::AccSrc8,  // ADC
     Mode::AccSrc8,  // ADD
@@ -283,6 +299,9 @@ constexpr std::array<Mode, 72> addressing_mode = {
     Mode::Inherent, // TSX
     Mode::Inherent, // TXS
     Mode::Inherent, // WAI
+
+    Mode::Wide, // ORG
+    Mode::Wide, // FDB
 };
 
 struct Instruction
