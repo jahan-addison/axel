@@ -13,39 +13,24 @@
 
 #pragma once
 
+#include <array>               // for array
+#include <cstddef>             // for size_t
 #include <deque>               // for deque
-#include <lionheart/grammar.h> // for Grammar
+#include <fmt/format.h>        // for format
+#include <lionheart/grammar.h> // for grammar_t
 #include <lionheart/map.h>     // for Ordered_Map
+#include <lionheart/symbol.h>  // for Mode, Instruction, Symbol
+#include <lionheart/util.h>    // for PRIVATE_UNLESS_TESTED
 #include <peglib.h>            // for parser
 #include <stdexcept>           // for runtime_error
 #include <string>              // for basic_string, string
-#include <string_view>         // for string_view
-#include <utility>             // for move
+#include <string_view>         // for basic_string_view, string_view
 
 namespace lionheart {
 
-namespace detail {
+namespace symbol {
 
-struct Instruction
-{
-    std::string mnemonic;
-    std::string addressing_mode;
-    std::deque<std::string> operands;
-};
-
-struct Symbol
-{
-    enum class Type
-    {
-        Variable,
-        Label
-    };
-    std::string value;
-    Type type;
-    std::size_t line;
-};
-
-} // namespace detail
+} // namespace symbol
 
 class Parser_Error : public std::runtime_error
 {
@@ -63,31 +48,31 @@ class Parser
     Parser() = delete;
     Parser(Parser const&) = delete;
     Parser& operator=(Parser const&) = delete;
-    explicit Parser(grammar::Grammar grammar)
-        : grammar_(std::move(grammar))
+    explicit Parser(grammar::grammar_t const& grammar)
+        : grammar_(grammar)
     {
     }
-
-  public:
-    using Instructions = std::deque<detail::Instruction>;
-    using Symbols = Ordered_Map<std::string, detail::Symbol>;
+    using Instructions = std::deque<symbol::Instruction>;
+    using Symbols = Ordered_Map<std::string, symbol::Symbol>;
 
   public:
     Instructions parse(std::string_view assembly);
 
   public:
     inline Symbols& symbol_table() { return symbols_; }
+    inline Instructions& instructions() { return instructions_; }
 
     // clang-format off
   PRIVATE_UNLESS_TESTED:
     void from_variable();
     void from_label();
+    // clang-format on
     void from_mnemonic();
+    void from_operands();
 
   private:
-    // clang-format on
     Instructions instructions_{};
-    grammar::Grammar grammar_;
+    grammar::grammar_t grammar_;
     Symbols symbols_{};
     peg::parser pegparser_{};
 };

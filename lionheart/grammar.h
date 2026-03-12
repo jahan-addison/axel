@@ -13,272 +13,81 @@
 
 #pragma once
 
-#include <array>            // for array
-#include <fmt/format.h>     // for format
-#include <iterator>         // for next
-#include <lionheart/util.h> // for PRIVATE_UNLESS_TESTED
-#include <numeric>          // for accumulate
-#include <string>           // for basic_string, allocator, char_traits, string
-#include <string_view>      // for basic_string_view, string_view
-#include <utility>          // for move
-
-namespace lionheart {
-
-namespace grammar {
+#include <string_view> // for basic_string_view, string_view
 
 /***************************************************************************
  * See https://github.com/yhirose/cpp-peglib for details on grammar syntax
  ***************************************************************************/
 
-struct rule
-{
-    using rule_t = std::string_view;
-};
+namespace lionheart::grammar {
 
-struct hex_immediate_8bit : rule
-{
-    constexpr static rule_t rule = R"(
-        hex_immediate_8bit <- < '$' [0-9a-fA-F]{2} >
-    )";
-};
+using grammar_t = std::string_view;
 
-struct octal_immediate_8bit : rule
-{
-    constexpr static rule_t rule = R"(
-        octal_immediate_8bit <- < '@' ([0-1][0-7]{2} / [0-7]{1,2}) >
-    )";
-};
-
-struct hex_immediate_16bit : rule
-{
-    constexpr static rule_t rule = R"(
-        hex_immediate_16bit <- < '$' [0-9a-fA-F]{4} >
-    )";
-};
-
-struct octal_immediate_16bit : rule
-{
-    constexpr static rule_t rule = R"(
-        octal_immediate_16bit <- < '@' ([0-1][0-7]{5} / [0-7]{1,5}) >
-    )";
-};
-
-struct identifier : rule
-{
-    constexpr static rule_t rule = R"(
-        identifier <- < [a-z_A-Z][a-z_A-Z0-9]* >
-    )";
-};
-
-struct data_16bit_immediate : rule
-{
-    constexpr static rule_t rule = R"(
-        data_16bit_immediate <- < '#' (hex_immediate_16bit / octal_immediate_16bit) >
-    )";
-};
-
-struct data_16bit_direct : rule
-{
-    constexpr static rule_t rule = R"(
-        data_16bit_direct <- < (hex_immediate_16bit / octal_immediate_16bit) >
-    )";
-};
-
-struct data_8bit_immediate : rule
-{
-    constexpr static rule_t rule = R"(
-        data_8bit_immediate <- < '#' (hex_immediate_8bit / octal_immediate_8bit) >
-    )";
-};
-
-struct data_8bit_direct : rule
-{
-    constexpr static rule_t rule = R"(
-        data_8bit_direct <- < (hex_immediate_8bit / octal_immediate_8bit) >
-    )";
-};
-
-struct Label : rule
-{
-    constexpr static rule_t rule = R"(
-        Label <- < identifier ':' >
-    )";
-};
-
-struct Variable : rule
-{
-    constexpr static rule_t rule = R"(
-        Variable <- identifier '=' data_16bit_direct
-    )";
-};
-
-struct Accumulator : rule
-{
-    constexpr static rule_t rule = R"(
-        Accumulator <- 'A' / 'B'
-    )";
-};
-
-struct Indexed_address : rule
-{
-    constexpr static rule_t rule = R"(
-        indexed_address <- data_8bit_direct ',' 'X'
-    )";
-};
-
-struct Mnemonic : rule
-{
-    constexpr static rule_t rule = R"(
-        Mnemonic <-
-            ABA / ADC / ADD / AND / ASL / ASR /
-            BCC / BCS / BEQ / BGE / BGT / BHI / BIT / BLE / BLS / BLT / BMI / BNE / BPL /
-            BRA / BSR / BVC / BVS /
-            CBA / CLC / CLI / CLR / CLV / CMP / COM / CPX /
-            DAA / DEC / DES / DEX /
-            EOR / INC / INS / INX /
-            JMP / JSR /
-            LDA / LDS / LDX / LSR /
-            NEG / NOP /
-            ORA / PSH / PUL /
-            ROL / ROR / RTI / RTS /
-            SBA / SBC / SEC / SEI / SEV / STA / STS / STX / SUB / SWI /
-            TAB / TAP / TBA / TPA / TST / TSX / TXS / WAI
-
-        ABA <- 'ABA'
-        ADC <- 'ADC' Accumulator (data_8bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
-        ADD <- 'ADD' Accumulator (data_8bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
-        AND <- 'AND' Accumulator (data_8bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
-        ASL <- 'ASL' (Accumulator / indexed_address / data_16bit_direct)
-        ASR <- 'ASR' (Accumulator / indexed_address / data_16bit_direct)
-        BCC <- 'BCC' (data_8bit_direct / identifier)
-        BCS <- 'BCS' (data_8bit_direct / identifier)
-        BEQ <- 'BEQ' (data_8bit_direct / identifier)
-        BGE <- 'BGE' (data_8bit_direct / identifier)
-        BGT <- 'BGT' (data_8bit_direct / identifier)
-        BHI <- 'BHI' (data_8bit_direct / identifier)
-        BIT <- 'BIT' Accumulator (data_8bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
-        BLE <- 'BLE' (data_8bit_direct / identifier)
-        BLS <- 'BLS' (data_8bit_direct / identifier)
-        BLT <- 'BLT' (data_8bit_direct / identifier)
-        BMI <- 'BMI' (data_8bit_direct / identifier)
-        BNE <- 'BNE' (data_8bit_direct / identifier)
-        BPL <- 'BPL' (data_8bit_direct / identifier)
-        BRA <- 'BRA' (data_8bit_direct / identifier)
-        BSR <- 'BSR' (data_8bit_direct / identifier)
-        BVC <- 'BVC' (data_8bit_direct / identifier)
-        BVS <- 'BVS' (data_8bit_direct / identifier)
-        CBA <- 'CBA'
-        CLC <- 'CLC'
-        CLI <- 'CLI'
-        CLR <- 'CLR' (Accumulator / indexed_address / data_16bit_direct)
-        CLV <- 'CLV'
-        CMP <- 'CMP' Accumulator (data_8bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
-        COM <- 'COM' (Accumulator / indexed_address / data_16bit_direct)
-        CPX <- 'CPX' (data_16bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
-        DAA <- 'DAA'
-        DEC <- 'DEC' (Accumulator / indexed_address / data_16bit_direct)
-        DES <- 'DES'
-        DEX <- 'DEX'
-        EOR <- 'EOR' Accumulator (data_8bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
-        INC <- 'INC' (Accumulator / indexed_address / data_16bit_direct)
-        INS <- 'INS'
-        INX <- 'INX'
-        JMP <- 'JMP' (indexed_address / data_16bit_direct / identifier)
-        JSR <- 'JSR' (indexed_address / data_16bit_direct / identifier)
-        LDA <- 'LDA' Accumulator (data_8bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
-        LDS <- 'LDS' (data_16bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
-        LDX <- 'LDX' (data_16bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
-        LSR <- 'LSR' (Accumulator / indexed_address / data_16bit_direct)
-        NEG <- 'NEG' (Accumulator / indexed_address / data_16bit_direct)
-        NOP <- 'NOP'
-        ORA <- 'ORA' Accumulator (data_8bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
-        PSH <- 'PSH' Accumulator
-        PUL <- 'PUL' Accumulator
-        ROL <- 'ROL' (Accumulator / indexed_address / data_16bit_direct)
-        ROR <- 'ROR' (Accumulator / indexed_address / data_16bit_direct)
-        RTI <- 'RTI'
-        RTS <- 'RTS'
-        SBA <- 'SBA'
-        SBC <- 'SBC' Accumulator (data_8bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
-        SEC <- 'SEC'
-        SEI <- 'SEI'
-        SEV <- 'SEV'
-        STA <- 'STA' Accumulator (indexed_address / data_16bit_direct / data_8bit_direct)
-        STS <- 'STS' (indexed_address / data_16bit_direct / data_8bit_direct)
-        STX <- 'STX' (indexed_address / data_16bit_direct / data_8bit_direct)
-        SUB <- 'SUB' Accumulator (data_8bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
-        SWI <- 'SWI'
-        TAB <- 'TAB'
-        TAP <- 'TAP'
-        TBA <- 'TBA'
-        TPA <- 'TPA'
-        TST <- 'TST' (Accumulator / indexed_address / data_16bit_direct)
-        TSX <- 'TSX'
-        TXS <- 'TXS'
-        WAI <- 'WAI'
-    )";
-};
-
-struct Grammar
-{
-    std::string operator()(bool test = false) const
-    {
-        return fmt::format(R"(
+constexpr grammar_t MC6800_GRAMMAR = R"(
         Start <- Instruction*
         Instruction <- Variable / Label / Mnemonic
 
-        # Rule Expansion
+        Mnemonic <-
+            Inherent('ABA') / AccSrc8('ADC') / AccSrc8('ADD') / AccSrc8('AND') / Unary8('ASL') / Unary8('ASR') /
+            Branch('BCC') / Branch('BCS') / Branch('BEQ') / Branch('BGE') / Branch('BGT') / Branch('BHI') /
+            AccSrc8('BIT') / Branch('BLE') / Branch('BLS') / Branch('BLT') / Branch('BMI') / Branch('BNE') /
+            Branch('BPL') / Branch('BRA') / Branch('BSR') / Branch('BVC') / Branch('BVS') / Inherent('CBA') /
+            Inherent('CLC') / Inherent('CLI') / Unary8('CLR') / Inherent('CLV') / AccSrc8('CMP') / Unary8('COM') /
+            Wide('CPX') / Inherent('DAA') / Unary8('DEC') / Inherent('DES') / Inherent('DEX') / AccSrc8('EOR') /
+            Unary8('INC') / Inherent('INS') / Inherent('INX') / Jump('JMP') / Jump('JSR') / AccSrc8('LDA') /
+            Wide('LDS') / Wide('LDX') / Unary8('LSR') / Unary8('NEG') / Inherent('NOP') / AccSrc8('ORA') /
+            AccOp('PSH') / AccOp('PUL') / Unary8('ROL') / Unary8('ROR') / Inherent('RTI') / Inherent('RTS') /
+            Inherent('SBA') / AccSrc8('SBC') / Inherent('SEC') / Inherent('SEI') / Inherent('SEV') / AccStore('STA') /
+            Store('STS') / Store('STX') / AccSrc8('SUB') / Inherent('SWI') / Inherent('TAB') / Inherent('TAP') /
+            Inherent('TBA') / Inherent('TPA') / Unary8('TST') / Inherent('TSX') / Inherent('TXS') / Inherent('WAI')
 
-        {}
+        Inherent(op) <- < op >
+
+        AccSrc8(op) <- < op > Accumulator (data_8bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
+
+        Unary8(op) <- < op > (Accumulator / indexed_address / data_16bit_direct)
+
+        Branch(op) <- < op > (data_8bit_direct / identifier)
+
+        Wide(op) <- < op > (data_16bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
+
+        Jump(op) <- < op > (indexed_address / data_16bit_direct / identifier)
+
+        AccStore(op) <- < op > Accumulator (indexed_address / data_16bit_direct / data_8bit_direct)
+
+        Store(op) <- < op > (indexed_address / data_16bit_direct / data_8bit_direct)
+
+        AccOp(op) <- < op > Accumulator
+
+        Variable <- identifier '=' data_16bit_direct
+
+        Label <- < identifier ':' >
+
+        Accumulator <- < 'A' / 'B' >
+
+        indexed_address <- data_8bit_direct ',' 'X'
+
+        data_16bit_immediate <- < '#' (hex_immediate_16bit / octal_immediate_16bit) >
+
+        data_16bit_direct <- < (hex_immediate_16bit / octal_immediate_16bit) >
+
+        data_8bit_immediate <- < '#' (hex_immediate_8bit / octal_immediate_8bit) >
+
+        data_8bit_direct <- < (hex_immediate_8bit / octal_immediate_8bit) >
+
+        hex_immediate_8bit <- < '$' [0-9a-fA-F]{2} >
+
+        octal_immediate_8bit <- < '@' ([0-1][0-7]{2} / [0-7]{1,2}) >
+
+        identifier <- < [a-z_A-Z][a-z_A-Z0-9]* >
+
+        hex_immediate_16bit <- < '$' [0-9a-fA-F]{4} >
+
+        octal_immediate_16bit <- < '@' ([0-1][0-7]{5} / [0-7]{1,5}) >
 
         %word <- identifier
         %whitespace <- ( [ \t\r\n\f\v] / comment )*
         comment     <- ';' [^\n]*
-        )",
-            rule_expansion(test));
-    }
-    constexpr std::string rule_expansion(bool test) const
-    {
-        if (test)
-            return std::accumulate(std::next(rules.begin()),
-                rules.end(),
-                util::get_boundary_substr(std::string{ rules[0] }),
-                [](std::string a, std::string_view b) {
-                    if (b.empty())
-                        return a;
-                    return std::move(a) + " " +
-                           util::get_boundary_substr(std::string{ b });
-                });
-        else
-            return std::accumulate(std::next(rules.begin()),
-                rules.end(),
-                std::string{ rules[0] },
-                [](std::string a, std::string_view b) {
-                    if (b.empty())
-                        return a;
-                    return std::move(a) + std::string{ b };
-                });
-    }
-
-  private:
-    const std::array<std::string_view, 14> rules = { Mnemonic::rule,
-        Variable::rule,
-        Label::rule,
-        Accumulator::rule,
-        Indexed_address::rule,
-        data_16bit_immediate::rule,
-        data_16bit_direct::rule,
-        data_8bit_immediate::rule,
-        data_8bit_direct::rule,
-        hex_immediate_8bit::rule,
-        octal_immediate_8bit::rule,
-        identifier::rule,
-        hex_immediate_16bit::rule,
-        octal_immediate_16bit::rule };
-};
-
-constexpr auto MC6800_GRAMMAR = Grammar();
+)";
 
 } // namespace grammar
-
-} // namespace lionheart
