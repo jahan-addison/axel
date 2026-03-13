@@ -25,6 +25,12 @@ The MC6800 has a 16-bit address bus that can directly access 64 kB of memory and
   * Symbol table and IR pass
   * Opcode byte translation pass
 
+#### Usage:
+
+```bash
+./lionheart <input_file> [output_file]
+```
+
 ## Build
 
 ```bash
