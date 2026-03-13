@@ -15,7 +15,7 @@
 
 #include <fmt/base.h>         // for println
 #include <functional>         // for function
-#include <lionheart/symbol.h> // for Symbol
+#include <lionheart/mc6800.h> // for Symbol
 #include <lionheart/util.h>   // for get_boundary_substr
 #include <peglib.h>           // for parser, SemanticValues, Action, Defin...
 #include <string>             // for basic_string, string
@@ -30,7 +30,7 @@
 
 namespace lionheart {
 
-Instructions Parser::parse(std::string_view assembly)
+mc6800::Instructions Parser::parse(std::string_view assembly)
 {
     pegparser_ = peg::parser();
     pegparser_.set_logger(
@@ -56,8 +56,8 @@ void Parser::from_label()
     pegparser_["Label"] = [&](peg::SemanticValues const& vs) {
         auto token =
             std::string{ vs.token().substr(0, vs.token().length() - 1) };
-        symbol::Symbol symbol = { .value = token,
-            .type = symbol::Symbol::Type::Label,
+        mc6800::Symbol symbol = { .value = token,
+            .type = mc6800::Symbol::Type::Label,
             .line = vs.line_info().first };
 
         symbols_.emplace(token, symbol);
@@ -72,8 +72,8 @@ void Parser::from_variable()
         auto symbol_value = util::get_boundary_substr(
             token.substr(token.find_first_of("=") + 1));
 
-        symbol::Symbol symbol = { .value = symbol_value,
-            .type = symbol::Symbol::Type::Variable,
+        mc6800::Symbol symbol = { .value = symbol_value,
+            .type = mc6800::Symbol::Type::Variable,
             .line = vs.line_info().first };
 
         symbols_.emplace(symbol_name, symbol);
@@ -95,12 +95,13 @@ void Parser::from_mnemonic()
 {
 
     pegparser_["Mnemonic"] = [&](peg::SemanticValues const& vs) {
-        using enum symbol::Mode;
-        auto addressing_mode = symbol::addressing_mode[vs.choice()];
-        symbol::Instruction instruction{
-            .mnemonic = symbol::mnemonic_string_index(vs.token()),
+        using enum mc6800::Mode;
+        auto addressing_mode = mc6800::addressing_mode[vs.choice()];
+        mc6800::Instruction instruction{
+            .mnemonic = mc6800::mnemonic_string_index(vs.token()),
             .mode = addressing_mode,
-            .operands = symbol::Operands{}
+            .operands = mc6800::Operands{},
+            .line = vs.line_info().first
         };
         if (vs.size() >= 1 and vs[0].has_value())
             instruction.operands.emplace_back(

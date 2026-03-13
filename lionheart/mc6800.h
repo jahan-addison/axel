@@ -11,19 +11,21 @@
  * for the full text of these licenses.
  ****************************************************************************/
 
-#include <array>     // for array
-#include <deque>     // for deque
-#include <matchit.h> // for match
-#include <string>    // for basic_string
-
-#define MNEMONIC_EXPANSION(x)                  \
-    []() -> lionheart::symbol::Mnemonic {      \
-        return lionheart::symbol::Mnemonic::x; \
-    }
-
 #pragma once
 
-namespace lionheart::symbol {
+#include <array>           // for array
+#include <cstddef>         // for byte
+#include <deque>           // for deque
+#include <lionheart/map.h> // for Ordered_Map
+#include <matchit.h>       // for match
+#include <string>          // for basic_string
+
+#define MNEMONIC_EXPANSION(x)                  \
+    []() -> lionheart::mc6800::Mnemonic {      \
+        return lionheart::mc6800::Mnemonic::x; \
+    }
+
+namespace lionheart::mc6800 {
 
 using Operands = std::deque<std::string>;
 
@@ -61,6 +63,24 @@ enum class Mode
     AccStore,
     Store,
     AccOp
+};
+
+enum class Addressing_Mode
+{
+    Accumulator,
+    Immediate,
+    Direct,
+    Extended,
+    Indexed,
+    Inherent,
+    Relative
+};
+
+enum class Accumulator
+{
+    A,
+    B,
+    None
 };
 
 enum class Mnemonic
@@ -221,6 +241,133 @@ constexpr Mnemonic mnemonic_string_index(std::string_view mnemonic)
         m::pattern | "FDB" = MNEMONIC_EXPANSION(ORG));
 }
 
+namespace {
+
+constexpr std::initializer_list<std::string_view> byte_prefix = { "$", "@" };
+
+constexpr bool is_byte_prefix(std::string_view search, std::size_t index = 0)
+{
+    return std::ranges::find(byte_prefix, search.substr(index, 1)) !=
+           byte_prefix.end();
+}
+
+} // namespace
+
+constexpr bool is_accumulator(std::string_view operand)
+{
+    return operand == "A" or operand == "B";
+}
+
+constexpr bool is_direct_8bit_operand(std::string_view operand)
+{
+    return is_byte_prefix(operand) and operand.size() == 3; // $FC
+}
+
+constexpr bool is_direct_16bit_operand(std::string_view operand)
+{
+    return is_byte_prefix(operand) and operand.size() == 5; // $F110
+}
+
+constexpr bool is_immediate_8bit_operand(std::string_view operand)
+{
+    return operand.starts_with("#") and is_byte_prefix(operand, 1) and
+           operand.size() == 4; // #$10
+}
+
+constexpr bool is_immediate_16bit_operand(std::string_view operand)
+{
+    return operand.starts_with("#") and is_byte_prefix(operand, 1) and
+           operand.size() == 6; // #$F010
+}
+
+constexpr Accumulator get_accumulator(std::string_view operand)
+{
+    if (operand != "A" and operand != "B")
+        return Accumulator::None;
+    else
+        return operand == "B" ? Accumulator::B : Accumulator::A;
+}
+
+constexpr bool is_indexed_mode(Operands const& operands)
+{
+    return operands.size() == 3 and operands.at(2).ends_with("X");
+}
+
+constexpr bool is_accumulator_mode(Operands const& operands)
+{
+    return operands.size() == 1 and is_accumulator(operands.front());
+}
+
+constexpr bool is_direct_mode(Operands const& operands)
+{
+    if (operands.size() == 2)
+        return is_accumulator(operands.front()) and
+               is_direct_8bit_operand(operands.back());
+    else
+        return false;
+}
+
+constexpr bool is_extended_mode(Operands const& operands)
+{
+    if (operands.size() == 2)
+        return is_accumulator(operands.front()) and
+               is_direct_16bit_operand(operands.back());
+    else
+        return false;
+}
+
+constexpr bool is_immediate_mode(Operands const& operands)
+{
+    if (operands.size() == 2)
+        return is_accumulator(operands.front()) and
+               is_immediate_8bit_operand(operands.back());
+    else
+        return false;
+}
+
+namespace {
+
+constexpr uint8_t parse_hex_char(const char c)
+{
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    if (c >= 'A' && c <= 'F')
+        return c - 'A' + 10;
+    if (c >= 'a' && c <= 'f')
+        return c - 'a' + 10;
+    throw std::invalid_argument("Invalid hex digit");
+}
+
+} // namespace
+
+constexpr std::string_view strip_data_prefix(std::string_view str)
+{
+    using namespace std::string_view_literals;
+
+    constexpr std::array prefixes = { "#$"sv, "#@"sv, "#"sv, "$"sv, "@"sv };
+    auto it = std::ranges::find_if(
+        prefixes, [str](std::string_view p) { return str.starts_with(p); });
+    if (it != prefixes.end()) {
+        str.remove_prefix(it->size());
+    }
+
+    return str;
+}
+
+constexpr std::byte bytes_from_hex_string(std::string_view hex_string)
+{
+    if (hex_string.empty() || hex_string.size() > 2) {
+        throw std::invalid_argument(
+            "Hex byte string must be 1 or 2 characters");
+    }
+
+    uint8_t result = 0;
+    for (char c : hex_string) {
+        result = static_cast<uint8_t>((result << 4) | parse_hex_char(c));
+    }
+    return static_cast<std::byte>(result);
+}
+
 /************************************************************************
  * Per-Instruction address modes
  *  This enables syntax-directed translation on a single mnemonic action
@@ -309,6 +456,11 @@ struct Instruction
     Mnemonic mnemonic;
     Mode mode;
     Operands operands;
+
+    std::size_t line{ 0 };
 };
 
-} // namespace types
+using Instructions = std::deque<Instruction>;
+using Symbols = Ordered_Map<std::string, Symbol>;
+
+} // namespace mc6800

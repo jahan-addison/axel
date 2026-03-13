@@ -13,13 +13,10 @@
 
 #pragma once
 
-#include <array>               // for array
 #include <cstddef>             // for size_t
-#include <deque>               // for deque
 #include <fmt/format.h>        // for format
 #include <lionheart/grammar.h> // for grammar_t
-#include <lionheart/map.h>     // for Ordered_Map
-#include <lionheart/symbol.h>  // for Mode, Instruction, Symbol
+#include <lionheart/mc6800.h>  // for Instructions, Symbols
 #include <lionheart/util.h>    // for PRIVATE_UNLESS_TESTED
 #include <peglib.h>            // for parser
 #include <stdexcept>           // for runtime_error
@@ -28,15 +25,15 @@
 
 namespace lionheart {
 
-using Instructions = std::deque<symbol::Instruction>;
-using Symbols = Ordered_Map<std::string, symbol::Symbol>;
-
 class Parser_Error : public std::runtime_error
 {
   public:
     Parser_Error(std::size_t line, std::size_t col, std::string const& message)
         : std::runtime_error(
-              fmt::format("\n>>> Line {}:{} - {}", line, col, message))
+              fmt::format(">>> Parser Error:\n    on line {}:{} with: {}",
+                  line,
+                  col,
+                  message))
     {
     }
 };
@@ -53,11 +50,11 @@ class Parser
     }
 
   public:
-    Instructions parse(std::string_view assembly);
+    mc6800::Instructions parse(std::string_view assembly);
 
   public:
-    inline Symbols& symbol_table() { return symbols_; }
-    inline Instructions& instructions() { return instructions_; }
+    mc6800::Symbols& symbol_table() { return symbols_; }
+    mc6800::Instructions& instructions() { return instructions_; }
 
     // clang-format off
   PRIVATE_UNLESS_TESTED:
@@ -68,9 +65,9 @@ class Parser
     void from_operands();
 
   private:
-    Instructions instructions_{};
+    mc6800::Instructions instructions_{};
     grammar::grammar_t grammar_;
-    Symbols symbols_{};
+    mc6800::Symbols symbols_{};
     peg::parser pegparser_{};
 };
 

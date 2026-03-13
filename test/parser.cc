@@ -14,8 +14,8 @@
 #include <doctest/doctest.h> // for ResultBuilder, REQUIRE, filloss, toSt...
 
 #include <lionheart/grammar.h> // for MC6800_GRAMMAR
+#include <lionheart/mc6800.h>  // for Instruction, Symbol, Mnemonic, Mode
 #include <lionheart/parser.h>  // for Parser
-#include <lionheart/symbol.h>  // for Instruction, Symbol, Mnemonic, Mode
 #include <string>              // for basic_string
 #include <string_view>         // for basic_string_view
 
@@ -40,7 +40,7 @@ TEST_CASE("Parser: Variable")
     auto& symbols = parser.symbol_table();
     REQUIRE_NOTHROW(parser.parse(good));
     REQUIRE_EQ(symbols.at("REDIS").value, "$FE3A");
-    REQUIRE_EQ(symbols.at("REDIS").type, symbol::Symbol::Type::Variable);
+    REQUIRE_EQ(symbols.at("REDIS").type, mc6800::Symbol::Type::Variable);
     REQUIRE_THROWS(parser.parse(bad));
     REQUIRE_NOTHROW(parser.parse(good_2));
     REQUIRE_EQ(symbols.at("AB").value, "$FEA1");
@@ -58,7 +58,7 @@ TEST_CASE("Parser: Label")
     auto parser = Parser{ grammar::MC6800_GRAMMAR };
     auto& symbols = parser.symbol_table();
     REQUIRE_NOTHROW(parser.parse(test));
-    REQUIRE_EQ(symbols.at("MYLABEL").type, symbol::Symbol::Type::Label);
+    REQUIRE_EQ(symbols.at("MYLABEL").type, mc6800::Symbol::Type::Label);
 }
 
 TEST_CASE("Parser: Mnemonic")
@@ -79,19 +79,19 @@ TEST_CASE("Parser: Mnemonic")
     REQUIRE_NOTHROW(parser.parse(test));
     REQUIRE_EQ(instructions.size(), 6);
 
-    REQUIRE(instructions.at(0).mnemonic == symbol::Mnemonic::ORG);
-    REQUIRE(instructions.at(1).mnemonic == symbol::Mnemonic::JSR);
-    REQUIRE(instructions.at(2).mnemonic == symbol::Mnemonic::LDA);
-    REQUIRE(instructions.at(3).mnemonic == symbol::Mnemonic::BRA);
-    REQUIRE(instructions.at(4).mnemonic == symbol::Mnemonic::TAB);
-    REQUIRE(instructions.at(5).mnemonic == symbol::Mnemonic::TST);
+    REQUIRE(instructions.at(0).mnemonic == mc6800::Mnemonic::ORG);
+    REQUIRE(instructions.at(1).mnemonic == mc6800::Mnemonic::JSR);
+    REQUIRE(instructions.at(2).mnemonic == mc6800::Mnemonic::LDA);
+    REQUIRE(instructions.at(3).mnemonic == mc6800::Mnemonic::BRA);
+    REQUIRE(instructions.at(4).mnemonic == mc6800::Mnemonic::TAB);
+    REQUIRE(instructions.at(5).mnemonic == mc6800::Mnemonic::TST);
 
-    REQUIRE(instructions.at(0).mode == symbol::Mode::Wide);
-    REQUIRE(instructions.at(1).mode == symbol::Mode::Jump);
-    REQUIRE(instructions.at(2).mode == symbol::Mode::AccSrc8);
-    REQUIRE(instructions.at(3).mode == symbol::Mode::Branch);
-    REQUIRE(instructions.at(4).mode == symbol::Mode::Inherent);
-    REQUIRE(instructions.at(5).mode == symbol::Mode::Unary8);
+    REQUIRE(instructions.at(0).mode == mc6800::Mode::Wide);
+    REQUIRE(instructions.at(1).mode == mc6800::Mode::Jump);
+    REQUIRE(instructions.at(2).mode == mc6800::Mode::AccSrc8);
+    REQUIRE(instructions.at(3).mode == mc6800::Mode::Branch);
+    REQUIRE(instructions.at(4).mode == mc6800::Mode::Inherent);
+    REQUIRE(instructions.at(5).mode == mc6800::Mode::Unary8);
 
     REQUIRE(instructions.at(0).operands.size() == 1);
     REQUIRE(instructions.at(0).operands.front() == "$F000");
