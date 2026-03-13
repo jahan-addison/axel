@@ -1,0 +1,11 @@
+REDIS = $FE3A
+DEUS  = $FE3B
+
+; bad
+START:
+  JSR DONE
+  LDA A #$01
+  TAB
+  TST B
+  BRA START
+DONE:

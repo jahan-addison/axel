@@ -18,7 +18,7 @@ The MC6800 has a 16-bit address bus that can directly access 64 kB of memory and
 
 ## Assembler
 
-* Great error handling, easy-to-extend parsing with [cpp-peglib](https://github.com/yhirose/cpp-peglib)
+* Excellent error handling, easy-to-extend parsing with [cpp-peglib](https://github.com/yhirose/cpp-peglib)
 * `ORG` mnemonic to set program counter, set to address `$F000` if omitted
 * `FDB` mnemonic to set interrupt and reset vectors
 * Multi-pass:
