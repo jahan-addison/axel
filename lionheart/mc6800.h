@@ -288,17 +288,17 @@ constexpr Accumulator get_accumulator(std::string_view operand)
         return operand == "B" ? Accumulator::B : Accumulator::A;
 }
 
-constexpr bool is_indexed_mode(Operands const& operands)
+inline bool is_indexed_mode(Operands const& operands)
 {
     return operands.size() == 3 and operands.at(2).ends_with("X");
 }
 
-constexpr bool is_accumulator_mode(Operands const& operands)
+inline bool is_accumulator_mode(Operands const& operands)
 {
     return operands.size() == 1 and is_accumulator(operands.front());
 }
 
-constexpr bool is_direct_mode(Operands const& operands)
+inline bool is_direct_mode(Operands const& operands)
 {
     if (operands.size() == 2)
         return is_accumulator(operands.front()) and
@@ -307,7 +307,7 @@ constexpr bool is_direct_mode(Operands const& operands)
         return false;
 }
 
-constexpr bool is_extended_mode(Operands const& operands)
+inline bool is_extended_mode(Operands const& operands)
 {
     if (operands.size() == 2)
         return is_accumulator(operands.front()) and
@@ -316,7 +316,7 @@ constexpr bool is_extended_mode(Operands const& operands)
         return false;
 }
 
-constexpr bool is_immediate_mode(Operands const& operands)
+inline bool is_immediate_mode(Operands const& operands)
 {
     if (operands.size() == 2)
         return is_accumulator(operands.front()) and
