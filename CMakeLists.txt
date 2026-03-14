@@ -11,7 +11,7 @@ endif()
 
 project(
   lionheart
-  VERSION 0.0.1
+  VERSION 1.0.0
   LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -38,7 +38,7 @@ include(${cmake-scripts_SOURCE_DIR}/tools.cmake)
 
 cpmaddpackage(NAME matchit VERSION 1.0.1 GITHUB_REPOSITORY BowenFu/matchit.cpp)
 cpmaddpackage("gh:fmtlib/fmt#12.1.0")
-cpmaddpackage("gh:yhirose/cpp-peglib#v1.9.1")
+cpmaddpackage("gh:yhirose/cpp-peglib#v1.10.0")
 
 # ##############################################################################
 # BUILD OPTIONS

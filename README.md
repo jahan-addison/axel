@@ -18,18 +18,46 @@ The MC6800 has a 16-bit address bus that can directly access 64 kB of memory and
 
 ## Assembler
 
-* Excellent error handling, easy-to-extend parsing with [cpp-peglib](https://github.com/yhirose/cpp-peglib)
-* `ORG` mnemonic to set program counter, set to address `$F000` if omitted
-* `FDB` mnemonic to set interrupt and reset vectors
-* Multi-pass:
-  * Symbol table and IR pass
-  * Opcode byte translation pass
-
-#### Usage:
+### Usage:
 
 ```bash
 ./lionheart <input_file> [output_file]
 ```
+
+### Features
+
+* **Excellent** error handling, easy-to-extend parsing with [cpp-peglib](https://github.com/yhirose/cpp-peglib)
+
+### Example:
+
+```asm
+ZUES = $FE3A
+DAWN = $FE3B
+
+ORG $F010
+START:
+  JSR DONE
+  LDA A #$01
+  TAB
+  TST ; <-- bad
+  BRA START
+
+
+DONE:
+  FDB $F10
+```
+
+<img src="/docs/error-example.png" width="600px">
+
+---
+
+#### Directives
+
+* `ORG` mnemonic to set program counter, set to address `$F000` if omitted
+* `FDB` mnemonic to set interrupt and reset vectors
+
+**Note**: [hexed.it](https://hexed.it) is a great online hex editor to disassemble bytecode!
+
 
 ## Build
 

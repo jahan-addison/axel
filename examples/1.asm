@@ -1,11 +1,14 @@
-REDIS = $FE3A
-DEUS  = $FE3B
+ZUES = $FE3A
+DAWN = $FE3B
 
-; bad
+ORG $F010
 START:
   JSR DONE
   LDA A #$01
   TAB
-  TST B
+  TST ; <-- bad
   BRA START
+
+
 DONE:
+  FDB $F10

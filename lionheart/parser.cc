@@ -17,6 +17,7 @@
 #include <functional>         // for function
 #include <lionheart/mc6800.h> // for Symbol
 #include <lionheart/util.h>   // for get_boundary_substr
+#include <memory>             // for shared_ptr
 #include <peglib.h>           // for parser, SemanticValues, Action, Defin...
 #include <string>             // for basic_string, string
 #include <utility>            // for pair
@@ -43,6 +44,7 @@ mc6800::Instructions Parser::parse(std::string_view assembly)
         throw Parser_Error(0, 0, "Bad grammar");
 
     pegparser_.enable_packrat_parsing();
+    std::shared_ptr<peg::Ast> ast;
     from_variable();
     from_label();
     from_operands();
