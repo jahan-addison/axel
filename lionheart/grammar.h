@@ -42,8 +42,8 @@ constexpr grammar_t MC6800_GRAMMAR = R"(
             Inherent('SBA') / AccSrc8('SBC') / Inherent('SEC') / Inherent('SEI') / Inherent('SEV') / AccStore('STA') /
             Store('STS') / Store('STX') / AccSrc8('SUB') / Inherent('SWI') / Inherent('TAB') / Inherent('TAP') /
             Inherent('TBA') / Inherent('TPA') / Unary8('TST') / Inherent('TSX') / Inherent('TXS') / Inherent('WAI')
-                / Wide('ORG')
-                / Wide('FDB')
+                / Directive('ORG')
+                / Directive('FDB')
 
         Inherent(op) <- < op >
 
@@ -54,6 +54,8 @@ constexpr grammar_t MC6800_GRAMMAR = R"(
         Branch(op) <- < op > (data_8bit_direct / identifier)
 
         Wide(op) <- < op > (data_16bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
+
+        Directive(op) <- < op > (data_16bit_direct / data_8bit_direct / identifier)
 
         Jump(op) <- < op > (indexed_address / data_16bit_direct / identifier)
 

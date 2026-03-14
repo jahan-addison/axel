@@ -19,24 +19,6 @@
 #include <stdexcept>          // for runtime_error
 #include <string>             // for basic_string, string
 #include <utility>            // for move
-#include <vector>             // for vector
-
-/**
- *  Start of program:
- *  LDS #$00FF ; Initialize stack pointer
- *  ...
- *  ...
- *  End of program:
- *
- *  --- THE HARDWARE VECTORS ---
-        ORG $FFF8       ; 4. Jump to the exact end of memory
-
-        FDB $0000       ; IRQ Vector (Not used right now)
-        FDB $0000       ; SWI Vector (Not used right now)
-        FDB $0000       ; NMI Vector (Not used right now)
-        FDB START       ; RESET Vector: Points the CPU to $F000 on boot!
- *
- */
 
 namespace lionheart {
 
@@ -66,6 +48,7 @@ class Assembler
     }
 
     using byte_stream_t = std::vector<std::byte>;
+    using operand_t = std::string_view;
 
   public:
     void encode();
@@ -74,11 +57,25 @@ class Assembler
   private:
     void encode_from_mnemonic_instruction(
         mc6800::Instruction const& instruction);
+    void encode_from_mnemonic_operands(mc6800::Operands const& operands,
+        std::size_t line);
+
+    constexpr bool is_bytecode_operand(operand_t operand)
+    {
+        return mc6800::is_immediate_prefix(operand) or
+               mc6800::is_direct_prefix(operand) or
+               symbols_.contains(operand.data());
+    }
+
+  private:
+    void push_operand_bytecode(operand_t operand, std::size_t line);
+    void resolve_relative_bytecode();
 
   private:
     mc6800::Symbols symbols_;
     mc6800::Instructions instructions_;
     byte_stream_t byte_stream_{};
+    std::deque<std::size_t> index_{};
 };
 
 std::string read_file_from_path(std::string_view path);

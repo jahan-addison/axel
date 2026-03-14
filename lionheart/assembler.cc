@@ -14,12 +14,11 @@
 #include <lionheart/assembler.h>
 
 #include <filesystem>         // for file_size, path
+#include <fmt/base.h>         // for format
 #include <fstream>            // for basic_ofstream, basic_ios, ios, ofstream
-#include <lionheart/byte.h>   // for mnemonic_and_addressing_mode_to_opcode
+#include <lionheart/byte.h>   // for mnemonic_addressing_mode_to_bytecode
 #include <lionheart/mc6800.h> // for Instruction, get_accumulator, Addressi...
 #include <matchit.h>          // for App, pattern, app, Wildcard, PatternHe...
-
-#include <fmt/base.h>
 
 namespace lionheart {
 
@@ -40,13 +39,57 @@ void Assembler::encode()
             m::pattern | mc6800::Mode::Inherent =
                 [&] {
                     byte_stream_.emplace_back(
-                        mc6800::mnemonic_and_addressing_mode_to_opcode(
+                        mc6800::mnemonic_addressing_mode_to_bytecode(
                             instruction.mnemonic,
                             mc6800::Accumulator::None,
                             mc6800::Addressing_Mode::Inherent));
                 },
-            m::pattern |
-                m::_ = [&] { encode_from_mnemonic_instruction(instruction); });
+            m::pattern | mc6800::Mode::Directive =
+                [&] {
+
+                },
+            m::pattern | m::_ =
+                [&] {
+                    encode_from_mnemonic_instruction(instruction);
+                    // encode the operand(s):
+                    encode_from_mnemonic_operands(
+                        instruction.operands, instruction.line);
+                });
+    }
+}
+
+void Assembler::encode_from_mnemonic_operands(mc6800::Operands const& operands,
+    std::size_t line)
+{
+    for (auto const& operand : operands) {
+        if (is_bytecode_operand(operand))
+            push_operand_bytecode(operand, line);
+    }
+}
+
+void Assembler::push_operand_bytecode(operand_t operand, std::size_t line)
+{
+    try {
+        if (symbols_.contains(operand.data())) {
+            auto symbol = symbols_.at(operand.data());
+            if (symbol.type == mc6800::Symbol::Type::Label)
+                for (auto const& byte : operand)
+                    byte_stream_.emplace_back(static_cast<std::byte>(
+                        static_cast<unsigned char>(byte)));
+            else
+                for (auto const& byte :
+                    mc6800::u16bit_safe_bytes_from_hex_string(
+                        mc6800::strip_data_prefix(symbol.value)))
+                    byte_stream_.emplace_back(byte);
+        } else {
+            for (auto const& byte : mc6800::u16bit_safe_bytes_from_hex_string(
+                     mc6800::strip_data_prefix(operand)))
+                byte_stream_.emplace_back(byte);
+        }
+    } catch (std::invalid_argument const& e) {
+        throw Assembler_Error(
+            fmt::format("invalid mnemonic operand '{}', {}", operand, e.what()),
+            line);
     }
 }
 
@@ -58,7 +101,7 @@ void Assembler::encode_from_mnemonic_instruction(
         m::pattern | m::app(mc6800::is_accumulator_mode, true) =
             [&] {
                 byte_stream_.emplace_back(
-                    mc6800::mnemonic_and_addressing_mode_to_opcode(
+                    mc6800::mnemonic_addressing_mode_to_bytecode(
                         instruction.mnemonic,
                         mc6800::get_accumulator(operands.front()),
                         mc6800::Addressing_Mode::Accumulator));
@@ -66,7 +109,7 @@ void Assembler::encode_from_mnemonic_instruction(
         m::pattern | m::app(mc6800::is_indexed_mode, true) =
             [&] {
                 byte_stream_.emplace_back(
-                    mc6800::mnemonic_and_addressing_mode_to_opcode(
+                    mc6800::mnemonic_addressing_mode_to_bytecode(
                         instruction.mnemonic,
                         mc6800::get_accumulator(operands.front()),
                         mc6800::Addressing_Mode::Indexed));
@@ -74,7 +117,7 @@ void Assembler::encode_from_mnemonic_instruction(
         m::pattern | m::app(mc6800::is_extended_mode, true) =
             [&] {
                 byte_stream_.emplace_back(
-                    mc6800::mnemonic_and_addressing_mode_to_opcode(
+                    mc6800::mnemonic_addressing_mode_to_bytecode(
                         instruction.mnemonic,
                         mc6800::get_accumulator(operands.front()),
                         mc6800::Addressing_Mode::Extended));
@@ -82,7 +125,7 @@ void Assembler::encode_from_mnemonic_instruction(
         m::pattern | m::app(mc6800::is_direct_mode, true) =
             [&] {
                 byte_stream_.emplace_back(
-                    mc6800::mnemonic_and_addressing_mode_to_opcode(
+                    mc6800::mnemonic_addressing_mode_to_bytecode(
                         instruction.mnemonic,
                         mc6800::get_accumulator(operands.front()),
                         mc6800::Addressing_Mode::Direct));
@@ -90,7 +133,7 @@ void Assembler::encode_from_mnemonic_instruction(
         m::pattern | m::app(mc6800::is_immediate_mode, true) =
             [&] {
                 byte_stream_.emplace_back(
-                    mc6800::mnemonic_and_addressing_mode_to_opcode(
+                    mc6800::mnemonic_addressing_mode_to_bytecode(
                         instruction.mnemonic,
                         mc6800::get_accumulator(operands.front()),
                         mc6800::Addressing_Mode::Immediate));
@@ -99,7 +142,7 @@ void Assembler::encode_from_mnemonic_instruction(
             [&] {
                 if (instruction.mode == mc6800::Mode::Branch) {
                     byte_stream_.emplace_back(
-                        mc6800::mnemonic_and_addressing_mode_to_opcode(
+                        mc6800::mnemonic_addressing_mode_to_bytecode(
                             instruction.mnemonic,
                             mc6800::Accumulator::None,
                             mc6800::Addressing_Mode::Relative));
@@ -108,14 +151,17 @@ void Assembler::encode_from_mnemonic_instruction(
                            symbols_.at(operands.front()).type ==
                                mc6800::Symbol::Type::Label) {
                     byte_stream_.emplace_back(
-                        mc6800::mnemonic_and_addressing_mode_to_opcode(
+                        mc6800::mnemonic_addressing_mode_to_bytecode(
                             instruction.mnemonic,
                             mc6800::Accumulator::None,
                             mc6800::Addressing_Mode::Relative));
-                } else
-                    throw Assembler_Error(
-                        fmt::format("invalid symbol '{}'", operands.front()),
-                        instruction.line);
+                } else {
+                    if (instruction.mode != mc6800::Mode::Directive) {
+                        throw Assembler_Error(fmt::format("invalid symbol '{}'",
+                                                  operands.front()),
+                            instruction.line);
+                    }
+                }
             }
 
     );

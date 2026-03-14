@@ -13,7 +13,9 @@
 
 #pragma once
 
-#include <string> // for basic_string, string
+#include <array>       // for array
+#include <string>      // for basic_string, string
+#include <string_view> // for basic_string_view, string_view
 
 #define STRINGIFY2(X) #X
 #define STRINGIFY(X) STRINGIFY2(X)
@@ -32,6 +34,17 @@
 #endif
 
 namespace lionheart::util {
+
+constexpr std::array<std::string_view, 2> split_string_by_nth(
+    std::string_view str,
+    size_t n)
+{
+    std::string_view first = str.substr(0, n);
+    std::string_view second =
+        (str.size() > n) ? str.substr(n, n) : std::string_view{};
+
+    return { first, second };
+}
 
 constexpr std::string get_boundary_substr(std::string const& token,
     std::string const& search = " \t\r\n\v\f")

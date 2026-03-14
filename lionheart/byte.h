@@ -29,7 +29,7 @@
 
 namespace lionheart::mc6800 {
 
-constexpr std::byte mnemonic_and_addressing_mode_to_opcode(Mnemonic mnemonic,
+constexpr std::byte mnemonic_addressing_mode_to_bytecode(Mnemonic mnemonic,
     Accumulator acc,
     Addressing_Mode mode)
 {

@@ -1,0 +1,14 @@
+ZUES = $FE3A
+DAWN = $FE3B
+
+ORG $F010
+START:
+  JSR DONE
+  LDA A #$01
+  TAB
+  TST B
+  BRA START
+
+
+DONE:
+  FDB $F100

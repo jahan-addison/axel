@@ -18,6 +18,7 @@
 #include <lionheart/grammar.h> // for grammar_t
 #include <lionheart/mc6800.h>  // for Instructions, Symbols
 #include <lionheart/util.h>    // for PRIVATE_UNLESS_TESTED
+#include <optional>            // for optional
 #include <peglib.h>            // for parser
 #include <stdexcept>           // for runtime_error
 #include <string>              // for basic_string, string

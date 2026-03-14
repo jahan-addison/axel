@@ -86,7 +86,7 @@ TEST_CASE("Parser: Mnemonic")
     REQUIRE(instructions.at(4).mnemonic == mc6800::Mnemonic::TAB);
     REQUIRE(instructions.at(5).mnemonic == mc6800::Mnemonic::TST);
 
-    REQUIRE(instructions.at(0).mode == mc6800::Mode::Wide);
+    REQUIRE(instructions.at(0).mode == mc6800::Mode::Directive);
     REQUIRE(instructions.at(1).mode == mc6800::Mode::Jump);
     REQUIRE(instructions.at(2).mode == mc6800::Mode::AccSrc8);
     REQUIRE(instructions.at(3).mode == mc6800::Mode::Branch);

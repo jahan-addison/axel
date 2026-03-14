@@ -13,12 +13,14 @@
 
 #pragma once
 
-#include <array>           // for array
-#include <cstddef>         // for byte
-#include <deque>           // for deque
-#include <lionheart/map.h> // for Ordered_Map
-#include <matchit.h>       // for match
-#include <string>          // for basic_string
+#include <array>            // for array
+#include <cstddef>          // for byte
+#include <deque>            // for deque
+#include <lionheart/map.h>  // for Ordered_Map
+#include <lionheart/util.h> // for split_string_by_nth
+#include <matchit.h>        // for match
+#include <string>           // for basic_string
+#include <vector>           // for vector
 
 #define MNEMONIC_EXPANSION(x)                  \
     []() -> lionheart::mc6800::Mnemonic {      \
@@ -26,6 +28,23 @@
     }
 
 namespace lionheart::mc6800 {
+
+/**
+ *  Start of program:
+ *  LDS #$00FF ; Initialize stack pointer
+ *  ...
+ *  ...
+ *  End of program:
+ *
+ *  --- THE HARDWARE VECTORS ---
+        ORG $FFF8       ; 4. Jump to the exact end of memory
+
+        FDB $0000       ; IRQ Vector (Not used right now)
+        FDB $0000       ; SWI Vector (Not used right now)
+        FDB $0000       ; NMI Vector (Not used right now)
+        FDB START       ; RESET Vector: Points the CPU to $F000 on boot!
+ *
+ */
 
 using Operands = std::deque<std::string>;
 
@@ -54,6 +73,7 @@ struct Symbol
  */
 enum class Mode
 {
+    Directive,
     Inherent,
     AccSrc8,
     Unary8,
@@ -245,13 +265,18 @@ namespace {
 
 constexpr std::initializer_list<std::string_view> byte_prefix = { "$", "@" };
 
-constexpr bool is_byte_prefix(std::string_view search, std::size_t index = 0)
+} // namespace
+
+constexpr bool is_direct_prefix(std::string_view search, std::size_t index = 0)
 {
     return std::ranges::find(byte_prefix, search.substr(index, 1)) !=
            byte_prefix.end();
 }
 
-} // namespace
+constexpr bool is_immediate_prefix(std::string_view search)
+{
+    return search.size() > 0 and search.at(0) == '#';
+}
 
 constexpr bool is_accumulator(std::string_view operand)
 {
@@ -260,23 +285,23 @@ constexpr bool is_accumulator(std::string_view operand)
 
 constexpr bool is_direct_8bit_operand(std::string_view operand)
 {
-    return is_byte_prefix(operand) and operand.size() == 3; // $FC
+    return is_direct_prefix(operand) and operand.size() == 3; // $FC
 }
 
 constexpr bool is_direct_16bit_operand(std::string_view operand)
 {
-    return is_byte_prefix(operand) and operand.size() == 5; // $F110
+    return is_direct_prefix(operand) and operand.size() == 5; // $F110
 }
 
 constexpr bool is_immediate_8bit_operand(std::string_view operand)
 {
-    return operand.starts_with("#") and is_byte_prefix(operand, 1) and
+    return is_immediate_prefix(operand) and is_direct_prefix(operand, 1) and
            operand.size() == 4; // #$10
 }
 
 constexpr bool is_immediate_16bit_operand(std::string_view operand)
 {
-    return operand.starts_with("#") and is_byte_prefix(operand, 1) and
+    return is_immediate_prefix(operand) and is_direct_prefix(operand, 1) and
            operand.size() == 6; // #$F010
 }
 
@@ -300,6 +325,8 @@ inline bool is_accumulator_mode(Operands const& operands)
 
 inline bool is_direct_mode(Operands const& operands)
 {
+    if (operands.size() == 1)
+        return is_direct_8bit_operand(operands.back());
     if (operands.size() == 2)
         return is_accumulator(operands.front()) and
                is_direct_8bit_operand(operands.back());
@@ -309,7 +336,9 @@ inline bool is_direct_mode(Operands const& operands)
 
 inline bool is_extended_mode(Operands const& operands)
 {
-    if (operands.size() == 2)
+    if (operands.size() == 1)
+        return is_direct_16bit_operand(operands.back());
+    else if (operands.size() == 2)
         return is_accumulator(operands.front()) and
                is_direct_16bit_operand(operands.back());
     else
@@ -318,7 +347,10 @@ inline bool is_extended_mode(Operands const& operands)
 
 inline bool is_immediate_mode(Operands const& operands)
 {
-    if (operands.size() == 2)
+    if (operands.size() == 1)
+        return is_immediate_8bit_operand(operands.back()) or
+               is_immediate_16bit_operand(operands.back());
+    else if (operands.size() == 2)
         return is_accumulator(operands.front()) and
                is_immediate_8bit_operand(operands.back());
     else
@@ -354,7 +386,7 @@ constexpr std::string_view strip_data_prefix(std::string_view str)
     return str;
 }
 
-constexpr std::byte bytes_from_hex_string(std::string_view hex_string)
+constexpr std::byte byte_from_hex_string(std::string_view hex_string)
 {
     if (hex_string.empty() || hex_string.size() > 2) {
         throw std::invalid_argument(
@@ -368,87 +400,101 @@ constexpr std::byte bytes_from_hex_string(std::string_view hex_string)
     return static_cast<std::byte>(result);
 }
 
+constexpr std::vector<std::byte> u16bit_safe_bytes_from_hex_string(
+    std::string_view hex_string)
+{
+    std::vector<std::byte> bytes{};
+    if (hex_string.empty() || hex_string.size() > 4) {
+        throw std::invalid_argument(
+            "Hex byte string must be 1 or 2 characters");
+    }
+    auto u16bit_safe = util::split_string_by_nth(hex_string, 2);
+    bytes.emplace_back(byte_from_hex_string(u16bit_safe.at(0)));
+    if (!u16bit_safe.back().empty())
+        bytes.emplace_back(byte_from_hex_string(u16bit_safe.at(1)));
+    return bytes;
+}
+
 /************************************************************************
  * Per-Instruction address modes
  *  This enables syntax-directed translation on a single mnemonic action
  ************************************************************************/
 
 constexpr std::array<Mode, 74> addressing_mode = {
-    Mode::Inherent, // ABA
-    Mode::AccSrc8,  // ADC
-    Mode::AccSrc8,  // ADD
-    Mode::AccSrc8,  // AND
-    Mode::Unary8,   // ASL
-    Mode::Unary8,   // ASR
-    Mode::Branch,   // BCC
-    Mode::Branch,   // BCS
-    Mode::Branch,   // BEQ
-    Mode::Branch,   // BGE
-    Mode::Branch,   // BGT
-    Mode::Branch,   // BHI
-    Mode::AccSrc8,  // BIT
-    Mode::Branch,   // BLE
-    Mode::Branch,   // BLS
-    Mode::Branch,   // BLT
-    Mode::Branch,   // BMI
-    Mode::Branch,   // BNE
-    Mode::Branch,   // BPL
-    Mode::Branch,   // BRA
-    Mode::Branch,   // BSR
-    Mode::Branch,   // BVC
-    Mode::Branch,   // BVS
-    Mode::Inherent, // CBA
-    Mode::Inherent, // CLC
-    Mode::Inherent, // CLI
-    Mode::Unary8,   // CLR
-    Mode::Inherent, // CLV
-    Mode::AccSrc8,  // CMP
-    Mode::Unary8,   // COM
-    Mode::Wide,     // CPX
-    Mode::Inherent, // DAA
-    Mode::Unary8,   // DEC
-    Mode::Inherent, // DES
-    Mode::Inherent, // DEX
-    Mode::AccSrc8,  // EOR
-    Mode::Unary8,   // INC
-    Mode::Inherent, // INS
-    Mode::Inherent, // INX
-    Mode::Jump,     // JMP
-    Mode::Jump,     // JSR
-    Mode::AccSrc8,  // LDA
-    Mode::Wide,     // LDS
-    Mode::Wide,     // LDX
-    Mode::Unary8,   // LSR
-    Mode::Unary8,   // NEG
-    Mode::Inherent, // NOP
-    Mode::AccSrc8,  // ORA
-    Mode::AccOp,    // PSH
-    Mode::AccOp,    // PUL
-    Mode::Unary8,   // ROL
-    Mode::Unary8,   // ROR
-    Mode::Inherent, // RTI
-    Mode::Inherent, // RTS
-    Mode::Inherent, // SBA
-    Mode::AccSrc8,  // SBC
-    Mode::Inherent, // SEC
-    Mode::Inherent, // SEI
-    Mode::Inherent, // SEV
-    Mode::AccStore, // STA
-    Mode::Store,    // STS
-    Mode::Store,    // STX
-    Mode::AccSrc8,  // SUB
-    Mode::Inherent, // SWI
-    Mode::Inherent, // TAB
-    Mode::Inherent, // TAP
-    Mode::Inherent, // TBA
-    Mode::Inherent, // TPA
-    Mode::Unary8,   // TST
-    Mode::Inherent, // TSX
-    Mode::Inherent, // TXS
-    Mode::Inherent, // WAI
-
-    Mode::Wide, // ORG
-    Mode::Wide, // FDB
+    Mode::Inherent,  // ABA
+    Mode::AccSrc8,   // ADC
+    Mode::AccSrc8,   // ADD
+    Mode::AccSrc8,   // AND
+    Mode::Unary8,    // ASL
+    Mode::Unary8,    // ASR
+    Mode::Branch,    // BCC
+    Mode::Branch,    // BCS
+    Mode::Branch,    // BEQ
+    Mode::Branch,    // BGE
+    Mode::Branch,    // BGT
+    Mode::Branch,    // BHI
+    Mode::AccSrc8,   // BIT
+    Mode::Branch,    // BLE
+    Mode::Branch,    // BLS
+    Mode::Branch,    // BLT
+    Mode::Branch,    // BMI
+    Mode::Branch,    // BNE
+    Mode::Branch,    // BPL
+    Mode::Branch,    // BRA
+    Mode::Branch,    // BSR
+    Mode::Branch,    // BVC
+    Mode::Branch,    // BVS
+    Mode::Inherent,  // CBA
+    Mode::Inherent,  // CLC
+    Mode::Inherent,  // CLI
+    Mode::Unary8,    // CLR
+    Mode::Inherent,  // CLV
+    Mode::AccSrc8,   // CMP
+    Mode::Unary8,    // COM
+    Mode::Wide,      // CPX
+    Mode::Inherent,  // DAA
+    Mode::Unary8,    // DEC
+    Mode::Inherent,  // DES
+    Mode::Inherent,  // DEX
+    Mode::AccSrc8,   // EOR
+    Mode::Unary8,    // INC
+    Mode::Inherent,  // INS
+    Mode::Inherent,  // INX
+    Mode::Jump,      // JMP
+    Mode::Jump,      // JSR
+    Mode::AccSrc8,   // LDA
+    Mode::Wide,      // LDS
+    Mode::Wide,      // LDX
+    Mode::Unary8,    // LSR
+    Mode::Unary8,    // NEG
+    Mode::Inherent,  // NOP
+    Mode::AccSrc8,   // ORA
+    Mode::AccOp,     // PSH
+    Mode::AccOp,     // PUL
+    Mode::Unary8,    // ROL
+    Mode::Unary8,    // ROR
+    Mode::Inherent,  // RTI
+    Mode::Inherent,  // RTS
+    Mode::Inherent,  // SBA
+    Mode::AccSrc8,   // SBC
+    Mode::Inherent,  // SEC
+    Mode::Inherent,  // SEI
+    Mode::Inherent,  // SEV
+    Mode::AccStore,  // STA
+    Mode::Store,     // STS
+    Mode::Store,     // STX
+    Mode::AccSrc8,   // SUB
+    Mode::Inherent,  // SWI
+    Mode::Inherent,  // TAB
+    Mode::Inherent,  // TAP
+    Mode::Inherent,  // TBA
+    Mode::Inherent,  // TPA
+    Mode::Unary8,    // TST
+    Mode::Inherent,  // TSX
+    Mode::Inherent,  // TXS
+    Mode::Inherent,  // WAI
+    Mode::Directive, // ORG
+    Mode::Directive, // FDB
 };
 
 struct Instruction
