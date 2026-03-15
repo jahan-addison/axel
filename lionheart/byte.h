@@ -13,11 +13,11 @@
 
 #pragma once
 
-#include <array>              // for array
-#include <cstddef>            // for byte
-#include <lionheart/mc6800.h> // for Mnemonic, Symbol
-#include <matchit.h>          // for match
-#include <string>             // for basic_string
+#include <array>                // for array
+#include <cstddef>              // for byte
+#include <lionheart/assembly.h> // for Mnemonic, Symbol
+#include <matchit.h>            // for match
+#include <string>               // for basic_string
 
 #define MC6800_BYTE(x) \
     std::byte          \
@@ -27,7 +27,13 @@
 
 #define MATCH_BYTE(x) m::expr(MC6800_BYTE(x))
 
-namespace lionheart::mc6800 {
+namespace lionheart::assembly {
+
+/**************************************************************************
+ * @brief
+ *  MC6800 opcode byte for the given mnemonic, accumulator register, and
+ *  addressing mode combination
+ **************************************************************************/
 
 constexpr std::byte mnemonic_addressing_mode_to_bytecode(Mnemonic mnemonic,
     Accumulator acc,
@@ -641,4 +647,4 @@ constexpr std::byte mnemonic_addressing_mode_to_bytecode(Mnemonic mnemonic,
         m::pattern | m::_ = MATCH_BYTE());
 }
 
-} // namespace mc6800
+} // namespace assembly

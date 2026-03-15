@@ -13,19 +13,23 @@
 
 #pragma once
 
-#include <cstddef>             // for size_t
-#include <fmt/format.h>        // for format
-#include <lionheart/grammar.h> // for grammar_t
-#include <lionheart/mc6800.h>  // for Instructions, Symbols
-#include <lionheart/util.h>    // for PRIVATE_UNLESS_TESTED
-#include <optional>            // for optional
-#include <peglib.h>            // for parser
-#include <stdexcept>           // for runtime_error
-#include <string>              // for basic_string, string
-#include <string_view>         // for basic_string_view, string_view
+#include <cstddef>              // for size_t
+#include <fmt/format.h>         // for format
+#include <lionheart/assembly.h> // for Instructions, Symbols
+#include <lionheart/grammar.h>  // for grammar_t
+#include <lionheart/util.h>     // for PRIVATE_UNLESS_TESTED
+#include <optional>             // for optional
+#include <peglib.h>             // for parser
+#include <stdexcept>            // for runtime_error
+#include <string>               // for basic_string, string
+#include <string_view>          // for basic_string_view, string_view
 
 namespace lionheart {
 
+/**
+ * @brief
+ *   Parser Error Exception
+ */
 class Parser_Error : public std::runtime_error
 {
   public:
@@ -39,6 +43,10 @@ class Parser_Error : public std::runtime_error
     }
 };
 
+/**
+ * @brief
+ *   MC6800 Assembly Parser
+ */
 class Parser
 {
   public:
@@ -51,11 +59,11 @@ class Parser
     }
 
   public:
-    mc6800::Instructions parse(std::string_view assembly);
+    assembly::Instructions parse(std::string_view assembly);
 
   public:
-    mc6800::Symbols& symbol_table() { return symbols_; }
-    mc6800::Instructions& instructions() { return instructions_; }
+    assembly::Symbols& symbol_table() { return symbols_; }
+    assembly::Instructions& instructions() { return instructions_; }
 
     // clang-format off
   PRIVATE_UNLESS_TESTED:
@@ -66,9 +74,9 @@ class Parser
     void from_operands();
 
   private:
-    mc6800::Instructions instructions_{};
+    assembly::Instructions instructions_{};
     grammar::grammar_t grammar_;
-    mc6800::Symbols symbols_{};
+    assembly::Symbols symbols_{};
     peg::parser pegparser_{};
 };
 

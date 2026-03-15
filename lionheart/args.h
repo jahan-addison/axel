@@ -18,13 +18,20 @@
 
 namespace lionheart::args {
 
-struct Config
+namespace {
+
+struct Arguments
 {
     std::string_view input_file;
     std::optional<std::string_view> output_file;
 };
 
-std::optional<Config> parse_args(int argc, const char* const* argv)
+} // namespace
+
+/**
+ * @brief Quick and safe argument parser
+ */
+std::optional<Arguments> parse_args(int argc, const char* const* argv)
 {
     std::span<const char* const> args{ argv, static_cast<size_t>(argc) };
 
@@ -34,7 +41,7 @@ std::optional<Config> parse_args(int argc, const char* const* argv)
         return std::nullopt;
     }
 
-    Config config{};
+    Arguments config{};
 
     config.input_file = args[1];
 

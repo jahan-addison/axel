@@ -59,7 +59,7 @@ The MC6800 ("sixty-eight hundred") is an 8-bit microprocessor designed and first
 
 #### Directives
 
-* `ORG` mnemonic to set program counter, set to address `$F000` if omitted
+* `ORG` mnemonic to set program counter address
 * `FDB` mnemonic to set interrupt and reset vectors
 
 **Note**: [hexed.it](https://hexed.it) is a great online hex editor to disassemble bytecode!
@@ -67,6 +67,9 @@ The MC6800 ("sixty-eight hundred") is an 8-bit microprocessor designed and first
 ### Example:
 
 ```asm
+; Variables
+DATA    = $F0
+
 ; Start of ROM
 ORG $F000
 
@@ -82,29 +85,38 @@ RESET:
     CLI
 
 MAIN:
-    ; My Program
-    LDA A #$42      ; Load the meaning of life
+		LDA A #$01
+		BRA OUT
+SAME:
+		LDA B DATA
+		ADD B #$10
+		STA B DATA
+		ASL A
+OUT:
+		LDX #$2F00
+WAIT:
+		DEX
+		BNE WAIT
+		TAB
+		TST B
+		BNE SAME
+		LDA A #$01
+		LDX $F0
+		CPX #$C10F
+		BNE OUT
+		BRA MAIN
 
     ; Reset vector
     ORG $FFFE       ; The exact end of memory
     FDB RESET
+
 ```
 
 #### Error messages:
 
 ```asm
-ZUES = $FE3A
-
-ORG $F010
-START:
-  JSR DONE
-  LDA A #$01
-  TAB
   TST ; <-- bad
-  BRA START
 
-DONE:
-  FDB START
 ```
 
 <img src="/docs/error-example.png" width="600px">

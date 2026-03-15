@@ -11,13 +11,14 @@
  * for the full text of these licenses.
  ****************************************************************************/
 
-#include <iostream>              // for char_traits, cerr
-#include <lionheart/args.h>      // for args
-#include <lionheart/assembler.h> // for Assembler, Assembler_Error
+#include <iostream>              // for cerr
+#include <lionheart/args.h>      // for Config, parse_args
+#include <lionheart/assembler.h> // for Assembler, Assembler_Error, rea...
 #include <lionheart/grammar.h>   // for MC6800_GRAMMAR
 #include <lionheart/parser.h>    // for Parser, Parser_Error
+#include <optional>              // for optional
 #include <ostream>               // for basic_ostream, operator<<
-#include <string>                // for basic_string
+#include <string>                // for basic_string, char_traits, string
 #include <string_view>           // for basic_string_view
 
 /******************************************************
@@ -32,7 +33,7 @@
  *              `\   ,/,)'   ''')/^"-;'
  *                  \
  *                ".
-/******************************************************/
+ ******************************************************/
 
 int main(int argc, char* argv[])
 {

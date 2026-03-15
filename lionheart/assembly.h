@@ -20,16 +20,10 @@
 #include <lionheart/util.h> // for split_string_by_nth
 #include <matchit.h>        // for match
 #include <string>           // for basic_string
+#include <variant>          // for variant
 #include <vector>           // for vector
 
-#define MNEMONIC_EXPANSION(x)                  \
-    []() -> lionheart::mc6800::Mnemonic {      \
-        return lionheart::mc6800::Mnemonic::x; \
-    }
-
-namespace lionheart::mc6800 {
-
-/**
+/**************************************************************************
  *  Start of program:
  *  LDS #$00FF ; Initialize stack pointer
  *  ...
@@ -37,21 +31,23 @@ namespace lionheart::mc6800 {
  *  End of program:
  *
  *  --- THE HARDWARE VECTORS ---
-        ORG $FFF8       ; 4. Jump to the exact end of memory
-
-        FDB $0000       ; IRQ Vector (Not used right now)
-        FDB $0000       ; SWI Vector (Not used right now)
-        FDB $0000       ; NMI Vector (Not used right now)
-        FDB START       ; RESET Vector: Points the CPU to $F000 on boot!
+ *       ORG $FFF8       ; 4. Jump to the exact end of memory
  *
- */
+ *       FDB $0000       ; IRQ Vector (Not used right now)
+ *       FDB $0000       ; SWI Vector (Not used right now)
+ *       FDB $0000       ; NMI Vector (Not used right now)
+ *       FDB START       ; RESET Vector: Points the CPU to $F000 on boot
+ *
+ ***************************************************************************/
+
+#define MNEMONIC_EXPANSION(x)                    \
+    []() -> lionheart::assembly::Mnemonic {      \
+        return lionheart::assembly::Mnemonic::x; \
+    }
+
+namespace lionheart::assembly {
 
 using Operands = std::deque<std::string>;
-
-struct PC
-{
-    u_int16_t location{ 0 };
-};
 
 struct Symbol
 {
@@ -65,12 +61,8 @@ struct Symbol
     std::size_t line;
 };
 
-/**
- * @brief
- * Relative mode:
- *  Signed two's complement, msb = 1 for negative jump
- *    * -126 to +129 byte limit
- */
+using Symbols = Ordered_Map<std::string, Symbol>;
+
 enum class Mode
 {
     Directive,
@@ -182,6 +174,9 @@ enum class Mnemonic
     FDB
 };
 
+/**
+ * @brief Map mnemonic token string to its corresponding Mnemonic enum value
+ */
 constexpr Mnemonic mnemonic_string_index(std::string_view mnemonic)
 {
     namespace m = matchit;
@@ -258,53 +253,97 @@ constexpr Mnemonic mnemonic_string_index(std::string_view mnemonic)
         m::pattern | "TXS" = MNEMONIC_EXPANSION(TXS),
         m::pattern | "WAI" = MNEMONIC_EXPANSION(WAI),
         m::pattern | "ORG" = MNEMONIC_EXPANSION(ORG),
-        m::pattern | "FDB" = MNEMONIC_EXPANSION(ORG));
+        m::pattern | "FDB" = MNEMONIC_EXPANSION(FDB));
 }
 
 namespace {
 
 constexpr std::initializer_list<std::string_view> byte_prefix = { "$", "@" };
 
+std::initializer_list<Mnemonic> jump_mnemonics = { Mnemonic::JMP,
+    Mnemonic::JSR };
+
 } // namespace
 
+/**
+ * @brief Check if the given mnemonic is an absolute jump instruction
+ */
+constexpr bool is_absolute_jump_instruction(Mnemonic search)
+{
+    return std::ranges::find(jump_mnemonics, search) != jump_mnemonics.end();
+}
+
+/**
+ * @brief Check if the character at the given index in the operand string
+ * is a direct-addressing byte prefix
+ */
 constexpr bool is_direct_prefix(std::string_view search, std::size_t index = 0)
 {
     return std::ranges::find(byte_prefix, search.substr(index, 1)) !=
            byte_prefix.end();
 }
 
+/**
+ * @brief Check if the operand string begins with the immediate-mode
+ * prefix character '#'
+ */
 constexpr bool is_immediate_prefix(std::string_view search)
 {
     return search.size() > 0 and search.at(0) == '#';
 }
 
+/**
+ * @brief Check if the given operand string names one of the two
+ * accumulator registers, A or B
+ */
 constexpr bool is_accumulator(std::string_view operand)
 {
     return operand == "A" or operand == "B";
 }
 
+/**
+ * @brief Check if the operand is a direct-addressed 8-bit hex value such
+ * as $FC
+ */
 constexpr bool is_direct_8bit_operand(std::string_view operand)
 {
     return is_direct_prefix(operand) and operand.size() == 3; // $FC
 }
 
+/**
+ * @brief Check if the operand is a direct-addressed 16-bit hex value such
+ * as $F110
+ */
 constexpr bool is_direct_16bit_operand(std::string_view operand)
 {
     return is_direct_prefix(operand) and operand.size() == 5; // $F110
 }
 
+/**
+ * @brief Check if the operand is an immediate 8-bit hex value such as
+ * #$10
+ */
 constexpr bool is_immediate_8bit_operand(std::string_view operand)
 {
     return is_immediate_prefix(operand) and is_direct_prefix(operand, 1) and
-           operand.size() == 4; // #$10
+           operand.size() == 4;
 }
 
+/**
+ * @brief Check if the operand is an immediate 16-bit hex value such as
+ * #$F010
+ */
 constexpr bool is_immediate_16bit_operand(std::string_view operand)
 {
     return is_immediate_prefix(operand) and is_direct_prefix(operand, 1) and
-           operand.size() == 6; // #$F010
+           operand.size() == 6;
 }
 
+/**
+ * @brief Provide the Accumulator enum value for the given operand string, or
+ *
+ * None if it does not name an accumulator
+ */
 constexpr Accumulator get_accumulator(std::string_view operand)
 {
     if (operand != "A" and operand != "B")
@@ -313,16 +352,25 @@ constexpr Accumulator get_accumulator(std::string_view operand)
         return operand == "B" ? Accumulator::B : Accumulator::A;
 }
 
+/**
+ * @brief Check if the operand list represents indexed addressing
+ */
 inline bool is_indexed_mode(Operands const& operands)
 {
     return operands.size() == 3 and operands.at(2).ends_with("X");
 }
 
+/**
+ * @brief Check if the operand list contains a single accumulator register
+ */
 inline bool is_accumulator_mode(Operands const& operands)
 {
     return operands.size() == 1 and is_accumulator(operands.front());
 }
 
+/**
+ * @brief Check if the operand list matches the direct 8-bit addressing
+ */
 inline bool is_direct_mode(Operands const& operands)
 {
     if (operands.size() == 1)
@@ -333,7 +381,9 @@ inline bool is_direct_mode(Operands const& operands)
     else
         return false;
 }
-
+/**
+ * @brief Check if the operand list matches the extended 16-bit addressing
+ */
 inline bool is_extended_mode(Operands const& operands)
 {
     if (operands.size() == 1)
@@ -345,6 +395,9 @@ inline bool is_extended_mode(Operands const& operands)
         return false;
 }
 
+/**
+ * @brief Check if the operand list matches the immediate addressing mode
+ */
 inline bool is_immediate_mode(Operands const& operands)
 {
     if (operands.size() == 1)
@@ -355,64 +408,6 @@ inline bool is_immediate_mode(Operands const& operands)
                is_immediate_8bit_operand(operands.back());
     else
         return false;
-}
-
-namespace {
-
-constexpr uint8_t parse_hex_char(const char c)
-{
-    if (c >= '0' && c <= '9')
-        return c - '0';
-    if (c >= 'A' && c <= 'F')
-        return c - 'A' + 10;
-    if (c >= 'a' && c <= 'f')
-        return c - 'a' + 10;
-    throw std::invalid_argument("Invalid hex digit");
-}
-
-} // namespace
-
-constexpr std::string_view strip_data_prefix(std::string_view str)
-{
-    using namespace std::string_view_literals;
-
-    constexpr std::array prefixes = { "#$"sv, "#@"sv, "#"sv, "$"sv, "@"sv };
-    auto it = std::ranges::find_if(
-        prefixes, [str](std::string_view p) { return str.starts_with(p); });
-    if (it != prefixes.end()) {
-        str.remove_prefix(it->size());
-    }
-
-    return str;
-}
-
-constexpr std::byte byte_from_hex_string(std::string_view hex_string)
-{
-    if (hex_string.empty() || hex_string.size() > 2) {
-        throw std::invalid_argument(
-            "Hex byte string must be 1 or 2 characters");
-    }
-
-    uint8_t result = 0;
-    for (char c : hex_string) {
-        result = static_cast<uint8_t>((result << 4) | parse_hex_char(c));
-    }
-    return static_cast<std::byte>(result);
-}
-
-constexpr std::vector<std::byte> u16bit_safe_bytes_from_hex_string(
-    std::string_view hex_string)
-{
-    std::vector<std::byte> bytes{};
-    if (hex_string.empty() || hex_string.size() > 4) {
-        throw std::invalid_argument(
-            "Hex byte string must be 1 or 2 characters");
-    }
-    auto u16bit_safe = util::split_string_by_nth(hex_string, 2);
-    bytes.emplace_back(byte_from_hex_string(u16bit_safe.at(0)));
-    if (!u16bit_safe.back().empty())
-        bytes.emplace_back(byte_from_hex_string(u16bit_safe.at(1)));
-    return bytes;
 }
 
 /************************************************************************
@@ -506,7 +501,6 @@ struct Instruction
     std::size_t line{ 0 };
 };
 
-using Instructions = std::deque<Instruction>;
-using Symbols = Ordered_Map<std::string, Symbol>;
+using Instructions = std::deque<std::variant<std::string, Instruction>>;
 
 } // namespace mc6800

@@ -33,8 +33,25 @@
 #define PROTECTED_UNLESS_TESTED protected
 #endif
 
+#define is_variant(variant, T) std::holds_alternative<T>(variant)
+
 namespace lionheart::util {
 
+// The overload pattern
+// (std::variant visitor)
+
+template<class... Ts>
+struct overload : Ts...
+{
+    using Ts::operator()...;
+};
+template<class... Ts>
+overload(Ts...) -> overload<Ts...>;
+
+/**
+ * @brief Split a string view at the given index and return both halves as a
+ * two-element array
+ */
 constexpr std::array<std::string_view, 2> split_string_by_nth(
     std::string_view str,
     size_t n)
@@ -46,6 +63,10 @@ constexpr std::array<std::string_view, 2> split_string_by_nth(
     return { first, second };
 }
 
+/**
+ * @brief Get the first whitespace-delimited token from a string, trimming
+ * leading and trailing whitespace
+ */
 constexpr std::string get_boundary_substr(std::string const& token,
     std::string const& search = " \t\r\n\v\f")
 {

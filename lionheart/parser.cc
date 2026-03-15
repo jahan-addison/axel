@@ -13,14 +13,14 @@
 
 #include <lionheart/parser.h>
 
-#include <fmt/base.h>         // for println
-#include <functional>         // for function
-#include <lionheart/mc6800.h> // for Symbol
-#include <lionheart/util.h>   // for get_boundary_substr
-#include <memory>             // for shared_ptr
-#include <peglib.h>           // for parser, SemanticValues, Action, Defin...
-#include <string>             // for basic_string, string
-#include <utility>            // for pair
+#include <fmt/base.h>           // for println
+#include <functional>           // for function
+#include <lionheart/assembly.h> // for Symbol
+#include <lionheart/util.h>     // for get_boundary_substr
+#include <memory>               // for shared_ptr
+#include <peglib.h>             // for parser, SemanticValues, Action, Defin...
+#include <string>               // for basic_string, string
+#include <utility>              // for pair
 
 #define MNEMONIC_OPERAND_ACTION_TYPE(x)                                 \
     do {                                                                \
@@ -31,7 +31,10 @@
 
 namespace lionheart {
 
-mc6800::Instructions Parser::parse(std::string_view assembly)
+/**
+ * @brief Parse a MC6800 program into symbols and instructions
+ */
+assembly::Instructions Parser::parse(std::string_view assembly)
 {
     pegparser_ = peg::parser();
     pegparser_.set_logger(
@@ -53,19 +56,26 @@ mc6800::Instructions Parser::parse(std::string_view assembly)
     return instructions_;
 }
 
+/**
+ * @brief Semantic action that stores a label symbol in the table
+ */
 void Parser::from_label()
 {
     pegparser_["Label"] = [&](peg::SemanticValues const& vs) {
         auto token =
             std::string{ vs.token().substr(0, vs.token().length() - 1) };
-        mc6800::Symbol symbol = { .value = token,
-            .type = mc6800::Symbol::Type::Label,
+        assembly::Symbol symbol = { .value = token,
+            .type = assembly::Symbol::Type::Label,
             .line = vs.line_info().first };
 
         symbols_.emplace(token, symbol);
+        instructions_.emplace_back(token);
     };
 }
 
+/**
+ * @brief Semantic action that stores a label variable in the table
+ */
 void Parser::from_variable()
 {
     pegparser_["Variable"] = [&](peg::SemanticValues const& vs) {
@@ -74,14 +84,17 @@ void Parser::from_variable()
         auto symbol_value = util::get_boundary_substr(
             token.substr(token.find_first_of("=") + 1));
 
-        mc6800::Symbol symbol = { .value = symbol_value,
-            .type = mc6800::Symbol::Type::Variable,
+        assembly::Symbol symbol = { .value = symbol_value,
+            .type = assembly::Symbol::Type::Variable,
             .line = vs.line_info().first };
 
         symbols_.emplace(symbol_name, symbol);
     };
 }
 
+/**
+ * @brief Semantic actions for each operand type in the grammar
+ */
 void Parser::from_operands()
 {
     MNEMONIC_OPERAND_ACTION_TYPE("Accumulator");
@@ -93,16 +106,20 @@ void Parser::from_operands()
     MNEMONIC_OPERAND_ACTION_TYPE("identifier");
 }
 
+/**
+ * @brief Semantic action that translates a mnemonic with its addressing mode
+ * and operands into an assembly::Instruction
+ */
 void Parser::from_mnemonic()
 {
 
     pegparser_["Mnemonic"] = [&](peg::SemanticValues const& vs) {
-        using enum mc6800::Mode;
-        auto addressing_mode = mc6800::addressing_mode[vs.choice()];
-        mc6800::Instruction instruction{
-            .mnemonic = mc6800::mnemonic_string_index(vs.token()),
+        using enum assembly::Mode;
+        auto addressing_mode = assembly::addressing_mode[vs.choice()];
+        assembly::Instruction instruction{
+            .mnemonic = assembly::mnemonic_string_index(vs.token()),
             .mode = addressing_mode,
-            .operands = mc6800::Operands{},
+            .operands = assembly::Operands{},
             .line = vs.line_info().first
         };
         if (vs.size() >= 1 and vs[0].has_value())

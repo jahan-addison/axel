@@ -13,15 +13,25 @@
 
 #pragma once
 
-#include <cstddef>            // for byte
-#include <fmt/format.h>       // for format
-#include <lionheart/mc6800.h> // for Instructions, Symbols
-#include <stdexcept>          // for runtime_error
-#include <string>             // for basic_string, string
-#include <utility>            // for move
+#include <cstddef>              // for byte
+#include <cstddef>              // for size_t
+#include <fmt/format.h>         // for format
+#include <lionheart/assembly.h> // for Instructions, Symbols, is_direct_prefix
+#include <lionheart/memory.h>   // for Memory
+#include <set>                  // for set
+#include <stdexcept>            // for runtime_error
+#include <stdint.h>             // for uint16_t, int16_t
+#include <string>               // for basic_string, string
+#include <string_view>          // for basic_string_view, string_view
+#include <unordered_map>        // for unordered_map
+#include <utility>              // for move
 
 namespace lionheart {
 
+/**
+ * @brief
+ *   Assembler Error Exception
+ */
 class Assembler_Error : public std::runtime_error
 {
   public:
@@ -34,20 +44,22 @@ class Assembler_Error : public std::runtime_error
     }
 };
 
+/**
+ * @brief
+ *   MC6800 Assembler
+ */
 class Assembler
 {
   public:
     Assembler() = delete;
     Assembler(Assembler const&) = delete;
     Assembler& operator=(Assembler const&) = delete;
-    explicit Assembler(mc6800::Symbols symbols,
-        mc6800::Instructions instructions)
+    explicit Assembler(assembly::Symbols symbols,
+        assembly::Instructions instructions)
         : symbols_(std::move(symbols))
         , instructions_(std::move(instructions))
     {
     }
-
-    using byte_stream_t = std::vector<std::byte>;
     using operand_t = std::string_view;
 
   public:
@@ -56,26 +68,43 @@ class Assembler
 
   private:
     void encode_from_mnemonic_instruction(
-        mc6800::Instruction const& instruction);
-    void encode_from_mnemonic_operands(mc6800::Operands const& operands,
+        assembly::Instruction const& instruction);
+    void encode_from_mnemonic_directives(
+        assembly::Instruction const& instruction);
+    void encode_from_mnemonic_branch_jump(
+        assembly::Instruction const& instruction);
+    void encode_from_mnemonic_operands(assembly::Operands const& operands,
         std::size_t line);
-
     constexpr bool is_bytecode_operand(operand_t operand)
     {
-        return mc6800::is_immediate_prefix(operand) or
-               mc6800::is_direct_prefix(operand) or
+        return assembly::is_immediate_prefix(operand) or
+               assembly::is_direct_prefix(operand) or
                symbols_.contains(operand.data());
     }
 
   private:
     void push_operand_bytecode(operand_t operand, std::size_t line);
-    void resolve_relative_bytecode();
+    void resolve_variable_bytecode_addresses(assembly::Operands& operands);
+    void resolve_relative_bytecode_addresses();
+    std::byte get_relative_offset_address(uint16_t branch_address,
+        uint16_t target_address,
+        std::size_t line,
+        bool jump = false);
 
   private:
-    mc6800::Symbols symbols_;
-    mc6800::Instructions instructions_;
-    byte_stream_t byte_stream_{};
-    std::deque<std::size_t> index_{};
+    assembly::Symbols symbols_;
+    assembly::Instructions instructions_;
+
+    // clang-format off
+  PRIVATE_UNLESS_TESTED:
+    assembly::Memory layout_{};
+  private:
+    using address_set_t = std::pair<std::size_t, std::set<std::size_t>>;
+    using address_table_t = std::unordered_map<std::string, address_set_t>;
+    Ordered_Map<std::string, int16_t> label_address_{};
+    std::size_t index_{ 0 };
+    address_table_t displacement_{};
+    address_table_t jump_{};
 };
 
 std::string read_file_from_path(std::string_view path);

@@ -47,25 +47,25 @@ constexpr grammar_t MC6800_GRAMMAR = R"(
 
         Inherent(op) <- < op >
 
-        AccSrc8(op) <- < op > Accumulator (data_8bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
+        AccSrc8(op) <- < op > Accumulator (data_8bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct / identifier)
 
-        Unary8(op) <- < op > (Accumulator / indexed_address / data_16bit_direct)
+        Unary8(op) <- < op > (Accumulator / indexed_address / data_16bit_direct / identifier)
 
         Branch(op) <- < op > (data_8bit_direct / identifier)
 
-        Wide(op) <- < op > (data_16bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct)
+        Wide(op) <- < op > (data_16bit_immediate / indexed_address / data_16bit_direct / data_8bit_direct / identifier)
 
         Directive(op) <- < op > (data_16bit_direct / data_8bit_direct / identifier)
 
         Jump(op) <- < op > (indexed_address / data_16bit_direct / identifier)
 
-        AccStore(op) <- < op > Accumulator (indexed_address / data_16bit_direct / data_8bit_direct)
+        AccStore(op) <- < op > Accumulator (indexed_address / data_16bit_direct / data_8bit_direct / identifier)
 
-        Store(op) <- < op > (indexed_address / data_16bit_direct / data_8bit_direct)
+        Store(op) <- < op > (indexed_address / data_16bit_direct / data_8bit_direct/ identifier)
 
         AccOp(op) <- < op > Accumulator
 
-        Variable <- identifier '=' data_16bit_direct
+        Variable <- identifier '=' ( data_16bit_direct / data_8bit_direct )
 
         Label <- < identifier ':' >
 
