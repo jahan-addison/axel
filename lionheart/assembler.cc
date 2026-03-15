@@ -135,8 +135,7 @@ void Assembler::encode_from_mnemonic_directives(
 }
 
 /**
- * @brief Iterate over instruction operands and push each valid bytecode operand
- * to the memory output
+ * @brief Encode mnemonic operands to bytecode
  */
 void Assembler::encode_from_mnemonic_operands(
     assembly::Operands const& operands,
@@ -149,7 +148,7 @@ void Assembler::encode_from_mnemonic_operands(
 }
 
 /**
- * @brief Resolve operand tokens to its bytecode bytes
+ * @brief Resolve operand tokens, displacement and jump values
  */
 void Assembler::push_operand_bytecode(operand_t operand, std::size_t line)
 {
