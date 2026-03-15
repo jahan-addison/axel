@@ -23,8 +23,6 @@
 </tr>
 </table>
 
-<!-- <h1 align="center">lionheart </h1> -->
-
 ## Overview
 
 The MC6800 ("sixty-eight hundred") is an 8-bit microprocessor designed and first manufactured by Motorola in 1974. The MC6800 microprocessor was part of the M6800 Microcomputer System that also included serial and parallel interface ICs, RAM, ROM and other support chips.
@@ -40,10 +38,6 @@ The MC6800 ("sixty-eight hundred") is an 8-bit microprocessor designed and first
     </td>
   </tr>
 </table>
-
-<!-- <p align="center">
-   <img width="700px" src="/docs/MC6800.jpeg">
-</p> -->
 
 ## Assembler
 
